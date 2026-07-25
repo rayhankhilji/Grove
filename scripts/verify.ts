@@ -1,0 +1,210 @@
+/**
+ * Headless checks over the parts of Stobs that carry real logic: the workspace
+ * tool layer, the tool registry and its wire encoding, per-agent tool gating,
+ * the built-in team's wiring, and the scheduler's next-fire maths.
+ *
+ * Run with `npm run verify`. No API key and no window required.
+ */
+import { CONNECTORS, connectorToolId } from '../src/shared/connectors'
+import { MODELS } from '../src/shared/models'
+import { BUILT_IN_AGENTS } from '../src/main/agents/defaults'
+import { store } from '../src/main/store'
+import { vault } from '../src/main/vault'
+import { nextRun } from '../src/main/workflows'
+import {
+  ALL_TOOLS,
+  definitionsFor,
+  objectiveProgress,
+  runTool,
+  snapshot,
+  toolsForAgent
+} from '../src/main/tools'
+
+let failures = 0
+let checks = 0
+
+const check = (label: string, condition: boolean, detail = ''): void => {
+  checks += 1
+  if (condition) {
+    console.log(`  [32m✓[0m ${label}`)
+  } else {
+    failures += 1
+    console.log(`  [31m✗[0m ${label}${detail ? ` — ${detail}` : ''}`)
+  }
+}
+
+const group = (name: string): void => console.log(`\n[1m${name}[0m`)
+
+const main = async (): Promise<void> => {
+  store.init()
+  vault.init()
+
+  /* ── Workspace tools ──────────────────────────────────────────────── */
+
+  group('Workspace tools')
+
+  await runTool('update_profile', { name: 'Rayhan', role: 'founder', venture: 'Stobs' })
+  check('profile persists', store.get().profile.name === 'Rayhan')
+
+  await runTool('set_objective', {
+    title: 'Reach $40k MRR',
+    why: 'Runway to hire.',
+    horizon: 'next'
+  })
+  check('objective created', store.get().objectives.length === 1)
+
+  await runTool('add_key_result', {
+    objective: 'Reach $40k MRR',
+    title: 'MRR',
+    start: 10000,
+    target: 40000,
+    unit: '$'
+  })
+  check('key result resolved the objective by title', store.get().objectives[0]!.keyResults.length === 1)
+  check('progress starts at 0%', objectiveProgress(store.get().objectives[0]!) === 0)
+
+  await runTool('record_progress', { key_result: 'MRR', current: 25000 })
+  check(
+    'progress honours the baseline (25k of 10k→40k is 50%)',
+    objectiveProgress(store.get().objectives[0]!) === 50
+  )
+
+  await runTool('add_task', { title: 'Ship pricing page', horizon: 'now', objective: 'Reach $40k MRR' })
+  check('task linked to its objective', store.get().tasks[0]!.objectiveId === store.get().objectives[0]!.id)
+
+  await runTool('complete_task', { task: 'Ship pricing' })
+  check('task completed via partial title', store.get().tasks[0]!.done)
+
+  await runTool('frame_decision', {
+    question: 'Hire a second engineer now?',
+    context: 'Runway is 9 months.',
+    options: [
+      { label: 'Hire now', upside: 'Ship faster', risk: 'Burn' },
+      { label: 'Wait a quarter', upside: 'Safer runway', risk: 'Slower' }
+    ],
+    recommendation: 'Wait a quarter.'
+  })
+  check('decision logged with both options', store.get().decisions[0]!.options.length === 2)
+
+  await runTool('resolve_decision', { decision: 'Hire a second', chosen: 'Wait a quarter' })
+  check('decision resolved', store.get().decisions[0]!.status === 'decided')
+
+  const missing = await runTool('record_progress', { key_result: 'nope', current: 5 })
+  check('unknown key result reports cleanly', missing.result.includes('No key result'))
+
+  const unknown = await runTool('not_a_tool', {})
+  check('unknown tool flagged as an error', unknown.isError)
+
+  /* ── Tool registry ────────────────────────────────────────────────── */
+
+  group('Tool registry')
+
+  const expectedConnectorTools = CONNECTORS.reduce((sum, spec) => sum + spec.actions.length, 0)
+  const connectorTools = ALL_TOOLS.filter((tool) => tool.provider)
+  check(
+    `every connector action has a tool (${expectedConnectorTools})`,
+    connectorTools.length === expectedConnectorTools,
+    `found ${connectorTools.length}`
+  )
+
+  const unschemad = connectorTools.filter(
+    (tool) => Object.keys((tool.schema as { properties?: object }).properties ?? {}).length === 0
+  )
+  const noArgTools = ['slack.slack_channels', 'linkedin.linkedin_me', 'todoist.todoist_list', 'microsoft.mscal_list']
+  check(
+    'connector tools declare input schemas',
+    unschemad.every((tool) => noArgTools.includes(tool.id)),
+    unschemad.map((tool) => tool.id).join(', ')
+  )
+
+  const names = definitionsFor(ALL_TOOLS).map((definition) => definition.name)
+  check(
+    'wire names satisfy the API pattern ^[a-zA-Z0-9_-]{1,64}$',
+    names.every((name) => /^[a-zA-Z0-9_-]{1,64}$/.test(name)),
+    names.filter((name) => !/^[a-zA-Z0-9_-]{1,64}$/.test(name)).join(', ')
+  )
+  check('wire names are unique', new Set(names).size === names.length)
+
+  /* ── Agent wiring ─────────────────────────────────────────────────── */
+
+  group('Built-in team')
+
+  const agents = BUILT_IN_AGENTS()
+  const toolIds = new Set(ALL_TOOLS.map((tool) => tool.id))
+  const agentIds = new Set(agents.map((agent) => agent.id))
+
+  check(
+    'every referenced tool id exists',
+    agents.every((agent) => agent.toolIds.every((toolId) => toolIds.has(toolId))),
+    agents
+      .flatMap((agent) => agent.toolIds.filter((toolId) => !toolIds.has(toolId)))
+      .join(', ')
+  )
+  check(
+    'every handoff target exists',
+    agents.every((agent) => agent.handoffIds.every((target) => agentIds.has(target)))
+  )
+  check(
+    'no agent can hand off to itself',
+    agents.every((agent) => !agent.handoffIds.includes(agent.id))
+  )
+  check(
+    'every agent uses a known model',
+    agents.every((agent) => MODELS.some((model) => model.id === agent.model))
+  )
+
+  const inbox = agents.find((agent) => agent.id === 'inbox')!
+  const gated = toolsForAgent(inbox)
+  check(
+    'tools from unconnected providers are withheld',
+    gated.every((tool) => !tool.provider),
+    gated.filter((tool) => tool.provider).map((tool) => tool.id).join(', ')
+  )
+  check('workspace tools stay available without any connection', gated.length > 0)
+
+  // Simulate a live Google credential and confirm the gate opens.
+  vault.saveProvider('google', { accessToken: 'test-token' })
+  const opened = toolsForAgent(inbox)
+  check(
+    'connecting a provider exposes its tools',
+    opened.some((tool) => tool.id === connectorToolId('google', 'gmail_search'))
+  )
+  check(
+    'other providers stay withheld',
+    !opened.some((tool) => tool.provider === 'microsoft')
+  )
+  vault.disconnectProvider('google')
+
+  /* ── Scheduler ────────────────────────────────────────────────────── */
+
+  group('Scheduler')
+
+  const weekdayRun = nextRun(9, 30, [1, 2, 3, 4, 5])
+  check('next run lands in the future', weekdayRun.getTime() > Date.now())
+  check('next run honours the weekday filter', [1, 2, 3, 4, 5].includes(weekdayRun.getDay()))
+  check('next run uses the requested time', weekdayRun.getHours() === 9 && weekdayRun.getMinutes() === 30)
+
+  const anyDay = nextRun(23, 59, [])
+  check('an empty day list means every day', anyDay.getTime() > Date.now())
+
+  /* ── Prompt assembly ──────────────────────────────────────────────── */
+
+  group('Prompt assembly')
+
+  const view = snapshot(store.get())
+  check('snapshot names the principal', view.includes('Rayhan'))
+  check('snapshot carries live numbers', view.includes('25000/40000'))
+  check('snapshot lists the open decision count', view.includes('DECISIONS (0 open)'))
+
+  store.flush()
+  check('state survives a flush', store.get().objectives.length === 1)
+
+  console.log(
+    failures === 0
+      ? `\n[32mAll ${checks} checks passed.[0m\n`
+      : `\n[31m${failures} of ${checks} checks failed.[0m\n`
+  )
+  process.exit(failures === 0 ? 0 : 1)
+}
+
+void main()

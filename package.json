@@ -1,0 +1,35 @@
+{
+  "name": "stobs",
+  "version": "1.0.0",
+  "description": "Stobs \u2014 an AI personal CEO for macOS. Bring your own key.",
+  "license": "MIT",
+  "author": "Stobs",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "npm run typecheck && npm run verify && electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "start": "electron-vite preview",
+    "dist": "npm run build && electron-builder --mac --publish never",
+    "dist:dir": "npm run build && electron-builder --mac --dir --publish never",
+    "verify": "esbuild scripts/verify.ts --bundle --platform=node --format=esm --outfile=out/verify.mjs --alias:electron=./scripts/electron-stub.ts --alias:@shared=./src/shared --log-level=error && node out/verify.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "dompurify": "^3.2.7",
+    "electron": "^40.2.1",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^4.0.1",
+    "marked": "^16.4.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}
