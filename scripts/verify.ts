@@ -6,6 +6,9 @@
  * Run with `npm run verify`. No API key and no window required.
  */
 import { CONNECTORS, connectorToolId } from '../src/shared/connectors'
+import { PERSONAS, personaFor } from '../src/shared/personas'
+import { ALL_MODELS, PROVIDERS, providerOfModel } from '../src/shared/providers'
+import { BENCHES, MEETING_KINDS } from '../src/main/boardroom'
 import { MODELS } from '../src/shared/models'
 import { BUILT_IN_AGENTS } from '../src/main/agents/defaults'
 import { store } from '../src/main/store'
@@ -174,6 +177,54 @@ const main = async (): Promise<void> => {
     !opened.some((tool) => tool.provider === 'microsoft')
   )
   vault.disconnectProvider('google')
+
+  /* ── Providers ────────────────────────────────────────────────────── */
+
+  group('Providers')
+
+  const modelIds = ALL_MODELS().map(({ model }) => model.id)
+  check('model ids are unique across providers', new Set(modelIds).size === modelIds.length)
+  check(
+    'every model resolves back to its own provider',
+    ALL_MODELS().every(({ provider, model }) => providerOfModel(model.id).id === provider.id)
+  )
+  check(
+    'every non-local provider has a base URL or is Anthropic',
+    PROVIDERS.every((provider) => provider.kind === 'anthropic' || Boolean(provider.baseUrl))
+  )
+  check(
+    'only Anthropic models claim adaptive reasoning',
+    ALL_MODELS().every(({ provider, model }) => !model.reasoning || provider.kind === 'anthropic')
+  )
+  check(
+    'the cheap worker default is a real model',
+    modelIds.includes('deepseek-chat')
+  )
+
+  /* ── Boardroom ────────────────────────────────────────────────────── */
+
+  group('Boardroom')
+
+  const personaIds = PERSONAS.map((persona) => persona.id)
+  check(`the bench has 50+ advisers (${PERSONAS.length})`, PERSONAS.length >= 50)
+  check('persona ids are unique', new Set(personaIds).size === personaIds.length)
+  check(
+    'every persona has a lens and a challenge',
+    PERSONAS.every((persona) => persona.lens.length > 40 && persona.pushback.length > 10)
+  )
+  check(
+    'every suggested bench references real personas',
+    BENCHES.every((bench) => bench.personaIds.every((id) => personaFor(id) !== undefined)),
+    BENCHES.flatMap((bench) => bench.personaIds.filter((id) => !personaFor(id))).join(', ')
+  )
+  check(
+    'every bench names a real meeting kind',
+    BENCHES.every((bench) => MEETING_KINDS.some((kind) => kind.id === bench.kind))
+  )
+  check(
+    'benches seat between three and eight',
+    BENCHES.every((bench) => bench.personaIds.length >= 3 && bench.personaIds.length <= 8)
+  )
 
   /* ── Scheduler ────────────────────────────────────────────────────── */
 

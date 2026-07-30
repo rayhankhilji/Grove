@@ -5,33 +5,39 @@ import { Icon, type IconName } from './components/Icon'
 import { Agents } from './views/Agents'
 import { Attention } from './views/Attention'
 import { Automations } from './views/Automations'
+import { Boardroom } from './views/Boardroom'
 import { Chat } from './views/Chat'
 import { Connections } from './views/Connections'
 import { Decisions } from './views/Decisions'
 import { Objectives } from './views/Objectives'
+import { Providers } from './views/Providers'
 import { Settings } from './views/Settings'
 import { Today } from './views/Today'
 
 type View =
   | 'today'
   | 'chat'
+  | 'boardroom'
   | 'agents'
   | 'automations'
   | 'connections'
   | 'attention'
   | 'objectives'
   | 'decisions'
+  | 'providers'
   | 'settings'
 
 const NAV: { id: View; label: string; icon: IconName; group: number }[] = [
   { id: 'today', label: 'Today', icon: 'today', group: 0 },
   { id: 'chat', label: 'Chat', icon: 'council', group: 0 },
-  { id: 'agents', label: 'Agents', icon: 'agents', group: 1 },
+  { id: 'boardroom', label: 'Boardroom', icon: 'agents', group: 0 },
+  { id: 'agents', label: 'Agents', icon: 'tool', group: 1 },
   { id: 'automations', label: 'Automations', icon: 'workflows', group: 1 },
   { id: 'connections', label: 'Connections', icon: 'connections', group: 1 },
   { id: 'attention', label: 'Attention', icon: 'clock', group: 2 },
   { id: 'objectives', label: 'Objectives', icon: 'objectives', group: 2 },
   { id: 'decisions', label: 'Decisions', icon: 'decisions', group: 2 },
+  { id: 'providers', label: 'Providers', icon: 'bolt', group: 3 },
   { id: 'settings', label: 'Settings', icon: 'settings', group: 3 }
 ]
 
@@ -164,12 +170,14 @@ export const App = (): ReactNode => {
 
       <main className="pane">
         {view === 'today' ? <Today /> : null}
+        {view === 'boardroom' ? <Boardroom /> : null}
         {view === 'agents' ? <Agents /> : null}
         {view === 'automations' ? <Automations /> : null}
         {view === 'connections' ? <Connections /> : null}
         {view === 'attention' ? <Attention /> : null}
         {view === 'objectives' ? <Objectives /> : null}
         {view === 'decisions' ? <Decisions /> : null}
+        {view === 'providers' ? <Providers /> : null}
         {view === 'settings' ? <Settings /> : null}
         {view === 'chat' ? (
           active ? (

@@ -254,6 +254,51 @@ export interface Connection {
   configured: boolean
 }
 
+/* ── Boardroom ───────────────────────────────────────────────────────────── */
+
+export type MeetingKind =
+  | 'board'
+  | 'pitch'
+  | 'critique'
+  | 'strategy'
+  | 'crisis'
+  | 'hiring'
+  | 'roast'
+
+export interface MeetingAttachment {
+  name: string
+  /** Extracted text. Slides are flattened to text before the call starts. */
+  text: string
+}
+
+export interface MeetingTurn {
+  id: ID
+  /** Persona id, or 'you' when the principal speaks. */
+  speaker: string
+  name: string
+  text: string
+  /** Set once Fish Audio has rendered this turn. */
+  audio: string | null
+  at: ISO
+}
+
+export interface Meeting {
+  id: ID
+  title: string
+  kind: MeetingKind
+  brief: string
+  attachments: MeetingAttachment[]
+  personaIds: string[]
+  turns: MeetingTurn[]
+  status: 'live' | 'ended'
+  /** Model every seat runs on — cheap models keep a long call affordable. */
+  model: string
+  voiceEnabled: boolean
+  summary: string
+  startedAt: ISO
+  endedAt: ISO | null
+}
+
 /* ── Chat ────────────────────────────────────────────────────────────────── */
 
 export interface ToolCall {
@@ -300,6 +345,12 @@ export interface Settings {
   attentionEnabled: boolean
   /** Keep Stobs in the menu bar with live run status. */
   menuBarEnabled: boolean
+  /** Model used for boardroom seats — deliberately separate from the agents'. */
+  boardroomModel: string
+  /** Speak boardroom turns aloud through Fish Audio. */
+  voiceEnabled: boolean
+  /** Fish Audio voice id per persona, chosen by the user. */
+  personaVoices: Record<string, string>
 }
 
 export interface AppState {
@@ -310,6 +361,7 @@ export interface AppState {
   memories: Memory[]
   briefings: Briefing[]
   attention: AttentionDay[]
+  meetings: Meeting[]
   conversations: Conversation[]
   agents: Agent[]
   runs: Run[]
@@ -331,6 +383,11 @@ export type AgentEvent =
   | { type: 'chat.done'; state: AppState }
   | { type: 'chat.error'; message: string }
   | { type: 'run.update'; run: Run }
+  | { type: 'meeting.turn'; meetingId: ID; turn: MeetingTurn }
+  | { type: 'meeting.delta'; meetingId: ID; turnId: ID; text: string }
+  | { type: 'meeting.speaking'; meetingId: ID; speaker: string | null }
+  | { type: 'meeting.audio'; meetingId: ID; turnId: ID; audio: string }
+  | { type: 'meeting.ended'; meetingId: ID; state: AppState }
   | { type: 'state'; state: AppState }
 
 export interface KeyStatus {

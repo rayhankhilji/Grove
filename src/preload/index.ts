@@ -7,10 +7,25 @@ import type {
   Horizon,
   KeyStatus,
   Objective,
+  Meeting,
+  MeetingAttachment,
   Profile,
   Settings,
   Workflow
 } from '@shared/types'
+
+export interface FishVoice {
+  id: string
+  title: string
+  author: string
+  languages: string[]
+  visibility: string
+}
+
+export interface BoardMeta {
+  kinds: { id: string; label: string }[]
+  benches: { id: string; label: string; kind: string; personaIds: string[] }[]
+}
 
 /**
  * The entire surface the renderer may touch. Node stays in the main process;
@@ -50,6 +65,31 @@ const api = {
     ipcRenderer.invoke('workflow:save', patch),
   deleteWorkflow: (id: string): Promise<AppState> => ipcRenderer.invoke('workflow:delete', id),
   runWorkflow: (id: string): Promise<AppState> => ipcRenderer.invoke('workflow:run', id),
+
+  // Boardroom
+  boardMeta: (): Promise<BoardMeta> => ipcRenderer.invoke('board:meta'),
+  startMeeting: (config: {
+    title: string
+    kind: string
+    brief: string
+    personaIds: string[]
+    attachments: MeetingAttachment[]
+  }): Promise<Meeting> => ipcRenderer.invoke('board:start', config),
+  nextTurn: (meetingId: string): Promise<AppState> => ipcRenderer.invoke('board:next', meetingId),
+  sayInMeeting: (meetingId: string, text: string): Promise<AppState> =>
+    ipcRenderer.invoke('board:say', meetingId, text),
+  endMeeting: (meetingId: string): Promise<AppState> => ipcRenderer.invoke('board:end', meetingId),
+  deleteMeeting: (meetingId: string): Promise<AppState> =>
+    ipcRenderer.invoke('board:delete', meetingId),
+  attachMaterials: (): Promise<MeetingAttachment[]> => ipcRenderer.invoke('board:attach'),
+
+  // Providers & voice
+  setProviderKey: (providerId: string, key: string): Promise<AppState> =>
+    ipcRenderer.invoke('provider:key', providerId, key),
+  configuredProviders: (): Promise<string[]> => ipcRenderer.invoke('provider:configured'),
+  setVoiceKey: (key: string): Promise<boolean> => ipcRenderer.invoke('voice:key', key),
+  hasVoiceKey: (): Promise<boolean> => ipcRenderer.invoke('voice:has'),
+  listVoices: (query: string): Promise<FishVoice[]> => ipcRenderer.invoke('voice:list', query),
 
   // Connections
   syncConnections: (): Promise<AppState> => ipcRenderer.invoke('connections:sync'),

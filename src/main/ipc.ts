@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
+import { BrowserWindow, dialog, ipcMain, nativeTheme, shell } from 'electron'
 import type {
   Agent,
   AgentEvent,
@@ -8,6 +8,8 @@ import type {
   KeyStatus,
   Objective,
   Profile,
+  Meeting,
+  MeetingAttachment,
   Settings,
   Task,
   Workflow
@@ -25,6 +27,19 @@ import {
 import { REDIRECT_URI } from './connectors/oauth'
 import { onWorkflowUpdate, runWorkflow } from './workflows'
 import { syncTray } from './native/tray'
+import {
+  BENCHES,
+  MEETING_KINDS,
+  deleteMeeting,
+  endMeeting,
+  interject,
+  nextTurn,
+  startMeeting,
+  type StartConfig
+} from './boardroom'
+import { extractText, SUPPORTED_EXTENSIONS } from './native/files'
+import { FISH_KEY_ID, listVoices, type FishVoice } from './voice/fish'
+import { llmKeyId } from './llm'
 import { currentFocus } from './native/context'
 import { vault } from './vault'
 import { id, now, store } from './store'
@@ -60,6 +75,72 @@ export const registerIpc = (): void => {
   })
 
   handle<[], string>('native:focus', () => currentFocus())
+
+  /* ── Boardroom ─────────────────────────────────────────────────────── */
+
+  handle<[], { kinds: typeof MEETING_KINDS; benches: typeof BENCHES }>('board:meta', () => ({
+    kinds: MEETING_KINDS,
+    benches: BENCHES
+  }))
+
+  handle<[StartConfig], Meeting>('board:start', (config) => startMeeting(config))
+
+  handle<[string], AppState>('board:next', async (meetingId) => {
+    await nextTurn(meetingId, broadcast)
+    return store.get()
+  })
+
+  handle<[string, string], AppState>('board:say', (meetingId, text) => {
+    const turn = interject(meetingId, text)
+    if (turn) broadcast({ type: 'meeting.turn', meetingId, turn })
+    return store.get()
+  })
+
+  handle<[string], AppState>('board:end', async (meetingId) => {
+    await endMeeting(meetingId, broadcast)
+    return store.get()
+  })
+
+  handle<[string], AppState>('board:delete', (meetingId) => {
+    deleteMeeting(meetingId)
+    return store.get()
+  })
+
+  handle<[], MeetingAttachment[]>('board:attach', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Add materials',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Documents', extensions: SUPPORTED_EXTENSIONS }]
+    })
+    if (result.canceled) return []
+    return Promise.all(result.filePaths.map(extractText))
+  })
+
+  /* ── Provider & voice keys ─────────────────────────────────────────── */
+
+  handle<[string, string], AppState>('provider:key', (providerId, key) => {
+    // The Anthropic key predates this and keeps its dedicated slot.
+    if (providerId === 'anthropic') vault.setKey(key)
+    else vault.saveProvider(llmKeyId(providerId), { accessToken: key.trim() || undefined })
+    return store.get()
+  })
+
+  handle<[], string[]>('provider:configured', () => {
+    const ready: string[] = []
+    if (vault.getKey()) ready.push('anthropic')
+    for (const provider of ['deepseek', 'groq', 'openrouter', 'google', 'openai', 'ollama']) {
+      if (vault.provider(llmKeyId(provider)).accessToken) ready.push(provider)
+    }
+    return ready
+  })
+
+  handle<[string], boolean>('voice:key', (key) => {
+    vault.saveProvider(FISH_KEY_ID, { accessToken: key.trim() || undefined })
+    return Boolean(key.trim())
+  })
+
+  handle<[], boolean>('voice:has', () => Boolean(vault.provider(FISH_KEY_ID).accessToken))
+  handle<[string], FishVoice[]>('voice:list', (query) => listVoices(query))
 
   handle<[Partial<Profile>], AppState>('profile:update', (patch) =>
     store.update((draft) => {

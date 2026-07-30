@@ -1545,3 +1545,127 @@ select {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* ── Boardroom ──────────────────────────────────────────────────────────── */
+
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  transition: transform 0.2s var(--ease);
+}
+
+.seat[data-speaking='true'] {
+  transform: translateY(-3px);
+}
+
+.seat-tile {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  display: grid;
+  place-items: center;
+  position: relative;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.seat[data-speaking='true'] .seat-tile {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.seat-live {
+  position: absolute;
+  bottom: 7px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+
+.seat-live i {
+  width: 2.5px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: talk 0.9s ease-in-out infinite;
+}
+
+.seat-live i:nth-child(1) { height: 5px; animation-delay: 0s; }
+.seat-live i:nth-child(2) { height: 10px; animation-delay: 0.15s; }
+.seat-live i:nth-child(3) { height: 6px; animation-delay: 0.3s; }
+
+@keyframes talk {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.seat-name {
+  font-size: 11.5px;
+  font-weight: 560;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.seat-role {
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 5px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.persona-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.13s var(--ease);
+}
+
+.persona-pick:hover {
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+
+.persona-pick[data-on='true'] {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.persona-pick strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 560;
+}
+
+.persona-pick .meta {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

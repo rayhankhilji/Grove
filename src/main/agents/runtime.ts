@@ -1,40 +1,16 @@
-import Anthropic from '@anthropic-ai/sdk'
+import type Anthropic from '@anthropic-ai/sdk'
 import type { Agent, AppState, Run, RunStep, ToolCall } from '@shared/types'
-import { modelFor } from '@shared/models'
 import { snapshot, definitionsFor, runToolByWireName, toolsForAgent, type ToolDef } from '../tools'
+import { describeLlmError, runTurn } from '../llm'
 import { id, now, store } from '../store'
-import { vault } from '../vault'
 
 const MAX_STEPS = 16
 const MAX_TOKENS = 16000
 /** Guards against agents handing work back and forth forever. */
 const MAX_HANDOFF_DEPTH = 3
 
-class MissingKeyError extends Error {
-  constructor() {
-    super('No API key set. Add your Anthropic key in Settings to start.')
-  }
-}
-
-export const client = (): Anthropic => {
-  const apiKey = vault.getKey()
-  if (!apiKey) throw new MissingKeyError()
-  return new Anthropic({ apiKey, maxRetries: 2 })
-}
-
-export const explain = (error: unknown): string => {
-  if (error instanceof MissingKeyError) return error.message
-  if (error instanceof Anthropic.AuthenticationError)
-    return 'That API key was rejected. Check it in Settings.'
-  if (error instanceof Anthropic.PermissionDeniedError)
-    return 'This key cannot use the selected model. Try another model in Settings.'
-  if (error instanceof Anthropic.RateLimitError)
-    return 'Rate limited by the API. Wait a moment and try again.'
-  if (error instanceof Anthropic.APIConnectionError)
-    return 'Could not reach the API. Check your connection.'
-  if (error instanceof Anthropic.APIError) return `API error (${error.status}): ${error.message}`
-  return (error as Error)?.message ?? 'Something went wrong.'
-}
+/** Errors from any provider, translated into something worth reading. */
+export const explain = describeLlmError
 
 /* ── Approvals ───────────────────────────────────────────────────────────── */
 
@@ -129,7 +105,6 @@ export const execute = async (
   hooks: ExecHooks,
   depth = 0
 ): Promise<ExecResult> => {
-  const anthropic = client()
   const tools = toolsForAgent(agent)
   const state = store.get()
 
@@ -155,46 +130,35 @@ export const execute = async (
   let tokensOut = 0
 
   for (let step = 0; step < MAX_STEPS; step += 1) {
-    const tuning = modelFor(agent.model).reasoning
-      ? {
-          thinking: { type: 'adaptive' as const, display: 'summarized' as const },
-          output_config: { effort: agent.effort }
-        }
-      : {}
-
-    const stream = anthropic.messages.stream({
+    // The system prompt is rebuilt each step so the model sees what its own
+    // tools just changed.
+    const response = await runTurn({
       model: agent.model,
-      max_tokens: MAX_TOKENS,
-      // Rebuilt each step so the model sees what its own tools just changed.
       system: systemFor(agent, store.get()),
       tools: definitions,
       messages,
-      ...tuning
+      maxTokens: MAX_TOKENS,
+      effort: agent.effort,
+      showThinking: store.get().settings.showThinking,
+      onText: (chunk) => {
+        text += chunk
+        hooks.onText?.(chunk)
+      },
+      onThinking: (chunk) => hooks.onThinking?.(chunk)
     })
 
-    for await (const event of stream) {
-      if (event.type !== 'content_block_delta') continue
-      if (event.delta.type === 'text_delta') {
-        text += event.delta.text
-        hooks.onText?.(event.delta.text)
-      } else if (event.delta.type === 'thinking_delta') {
-        hooks.onThinking?.(event.delta.thinking)
-      }
-    }
-
-    const response = await stream.finalMessage()
-    tokensIn += response.usage.input_tokens
-    tokensOut += response.usage.output_tokens
+    tokensIn += response.tokensIn
+    tokensOut += response.tokensOut
     messages.push({ role: 'assistant', content: response.content })
 
-    if (response.stop_reason === 'refusal') {
+    if (response.stopReason === 'refusal') {
       text ||= 'I can’t help with that one.'
       break
     }
-    if (response.stop_reason !== 'tool_use') break
+    if (response.stopReason !== 'tool_use') break
 
     const uses = response.content.filter(
-      (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use'
+      (block): block is Anthropic.ToolUseBlockParam => block.type === 'tool_use'
     )
 
     // Approval is decided for the whole batch, so a turn can never half-execute.

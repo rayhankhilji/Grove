@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AppState } from '@shared/types'
-import { DEFAULT_MODEL } from '@shared/models'
+import { DEFAULT_MODEL, WORKER_MODEL } from '@shared/providers'
 import { BUILT_IN_AGENTS } from './agents/defaults'
 
 const emptyState = (): AppState => ({
@@ -14,6 +14,7 @@ const emptyState = (): AppState => ({
   memories: [],
   briefings: [],
   attention: [],
+  meetings: [],
   conversations: [],
   agents: BUILT_IN_AGENTS(),
   runs: [],
@@ -27,7 +28,10 @@ const emptyState = (): AppState => ({
     theme: 'dark',
     automationsEnabled: true,
     attentionEnabled: true,
-    menuBarEnabled: true
+    menuBarEnabled: true,
+    boardroomModel: WORKER_MODEL,
+    voiceEnabled: false,
+    personaVoices: {}
   }
 })
 

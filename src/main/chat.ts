@@ -1,6 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { AgentEvent, Conversation, Message, ToolCall } from '@shared/types'
-import { execute, explain, client } from './agents/runtime'
+import { execute, explain } from './agents/runtime'
+import { complete } from './llm'
 import { snapshot } from './tools'
 import { id, now, store, today } from './store'
 
@@ -141,17 +142,12 @@ Write it as their CEO: terse, specific, no hedging, no encouragement. Never inve
 
 ${snapshot(state)}`
 
-  const response = await client().messages.create({
-    model: state.settings.model,
-    max_tokens: 2000,
-    messages: [{ role: 'user', content: prompt }]
-  })
-
-  const body = response.content
-    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-    .map((block) => block.text)
-    .join('\n')
-    .trim()
+  const body = await complete(
+    state.settings.model,
+    'You write a daily briefing for a founder. Terse, specific, no encouragement. Never invent facts.',
+    prompt,
+    2000
+  )
 
   store.update((draft) => {
     const key = today()
