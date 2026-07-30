@@ -1,7 +1,8 @@
 import type { AgentEvent, Meeting, MeetingAttachment, MeetingKind, MeetingTurn } from '@shared/types'
-import { PERSONAS, PERSONA_DISCLAIMER, personaFor } from '@shared/personas'
+import { HOUSE_RULES, PERSONAS, PERSONA_DISCLAIMER, personaFor } from '@shared/personas'
 import { runTurn, complete, describeLlmError } from './llm'
 import { snapshot } from './tools'
+import { context as brainContext } from './brain'
 import { speak } from './voice/fish'
 import { id, now, store } from './store'
 
@@ -79,31 +80,30 @@ const systemForSeat = (meeting: Meeting, personaId: string): string => {
     .map((entry) => personaFor(entry)?.name)
     .filter(Boolean)
 
-  return `You are playing ${persona.name} in a live meeting — an interpretation of their publicly documented thinking, built from their books, talks and interviews. You are not the real person and must never claim to be, never invent biographical facts, and never put words in their mouth as quotations.
+  // The persona's own file is the bulk of the prompt: a long, specific account
+  // of what they believe and how they talk beats any amount of adjectives.
+  return `${persona.body}
 
-How you evaluate:
-${persona.lens}
+---
 
-The question you always eventually ask:
-${persona.pushback}
+${HOUSE_RULES}
+
+## This particular call
 
 ${KINDS[meeting.kind].chair}
 
-Also in the room: ${others.join(', ') || 'just the principal'}. The principal is the person whose work is being discussed.
+Also in the room: ${others.join(', ') || 'just the principal'}. The principal is the person whose work is being discussed — they are in the room and can hear you.
 
-How to speak on this call:
-- One contribution at a time, 2–5 sentences. This is talk, not an essay. No headers, no bullet lists.
-- React to what was just said. Name people directly when you agree or disagree with them — real rooms argue.
-- Stay in your lane. You are here for your specific lens, not to be well-rounded.
-- Be concrete about this business, not generic advice. Use the numbers and facts you were given.
-- Do not narrate stage directions, do not write your own name as a prefix, and do not summarise the meeting.
-- If you have nothing to add beyond what has been said, say something short that moves it forward or hands off.`
+You are ${persona.name}. Speak once, now, as yourself.`
 }
 
-const contextForSeat = (meeting: Meeting, workspace: string): string =>
-  `## The brief
+const contextForSeat = (meeting: Meeting, workspace: string): string => {
+  const brain = brainContext(`${meeting.brief} ${meeting.title}`)
+  return `## The brief
 
-${meeting.brief}${materials(meeting.attachments)}
+${meeting.brief}${materials(meeting.attachments)}${
+    brain ? `\n\n## What you already know about this company\n\n${brain}` : ''
+  }
 
 ## What the principal is actually working on
 
@@ -114,6 +114,7 @@ ${workspace}
 ${transcriptFor(meeting)}
 
 Speak now, in character, once.`
+}
 
 /* ── Turn selection ──────────────────────────────────────────────────────── */
 
@@ -331,40 +332,40 @@ export const deleteMeeting = (meetingId: string): void => {
 /** Suggested benches, so a first call is one click rather than a casting job. */
 export const BENCHES: { id: string; label: string; kind: MeetingKind; personaIds: string[] }[] = [
   {
-    id: 'classic-board',
-    label: 'The classic board',
+    id: 'full',
+    label: 'The whole room',
     kind: 'board',
-    personaIds: ['bezos', 'grove', 'horowitz', 'gurley', 'doerr']
+    personaIds: ['graham', 'jobs', 'altman', 'naval', 'karpathy', 'munger', 'collison', 'bezos']
   },
   {
-    id: 'product-taste',
-    label: 'Product taste',
+    id: 'early',
+    label: 'Early stage reality check',
+    kind: 'strategy',
+    personaIds: ['graham', 'naval', 'munger', 'collison']
+  },
+  {
+    id: 'product',
+    label: 'Product and craft',
     kind: 'critique',
-    personaIds: ['jobs', 'chesky', 'rams', 'systrom', 'norman']
+    personaIds: ['jobs', 'collison', 'karpathy', 'graham']
   },
   {
     id: 'raise',
     label: 'Raising a round',
     kind: 'pitch',
-    personaIds: ['thiel', 'gurley', 'wilson', 'lee', 'graham']
+    personaIds: ['altman', 'munger', 'graham', 'bezos']
   },
   {
-    id: 'engineers',
-    label: 'The engineers',
+    id: 'technical',
+    label: 'Technical due diligence',
     kind: 'critique',
-    personaIds: ['carmack', 'wozniak', 'dhh', 'hamilton', 'karpathy']
+    personaIds: ['karpathy', 'collison', 'munger']
   },
   {
-    id: 'contrarians',
-    label: 'Contrarians',
+    id: 'bet',
+    label: 'Should we bet the company',
     kind: 'strategy',
-    personaIds: ['taleb', 'munger', 'thiel', 'rumelt', 'dhh']
-  },
-  {
-    id: 'growth',
-    label: 'Growth room',
-    kind: 'strategy',
-    personaIds: ['ellis', 'chen', 'weinberg', 'zhang', 'godin']
+    personaIds: ['altman', 'bezos', 'munger', 'naval']
   }
 ]
 

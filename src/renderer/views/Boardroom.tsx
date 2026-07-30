@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Meeting, MeetingAttachment, MeetingTurn } from '@shared/types'
-import { DOMAINS, PERSONAS, PERSONA_DISCLAIMER, personaFor, type Domain } from '@shared/personas'
+import { DOMAINS, PERSONAS, PERSONA_DISCLAIMER, personaFor } from '@shared/personas'
 import { api } from '../lib/api'
 import { useStore } from '../lib/state'
 import { Icon } from '../components/Icon'
@@ -61,7 +61,7 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
   const [brief, setBrief] = useState('')
   const [picked, setPicked] = useState<string[]>([])
   const [attachments, setAttachments] = useState<MeetingAttachment[]>([])
-  const [domain, setDomain] = useState<Domain | 'All'>('All')
+  const [domain, setDomain] = useState<string>('All')
   const [search, setSearch] = useState('')
   const [meta, setMeta] = useState<{ kinds: { id: string; label: string }[]; benches: { id: string; label: string; kind: string; personaIds: string[] }[] }>({ kinds: [], benches: [] })
 
@@ -191,13 +191,13 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
           className="grow"
           type="text"
           value={search}
-          placeholder="Search 55 advisers…"
+          placeholder="Search the bench…"
           onChange={(event) => setSearch(event.target.value)}
         />
         <select
           value={domain}
           style={{ width: 'auto' }}
-          onChange={(event) => setDomain(event.target.value as Domain | 'All')}
+          onChange={(event) => setDomain(event.target.value)}
         >
           <option value="All">All</option>
           {DOMAINS.map((entry) => (
@@ -219,7 +219,7 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
             <span className="dot" style={{ background: persona.tint }} />
             <span className="grow">
               <strong>{persona.name}</strong>
-              <span className="meta">{persona.known}</span>
+              <span className="meta">{persona.brief || persona.known}</span>
             </span>
             {state.settings.personaVoices[persona.id] ? (
               <Icon name="sparkle" size={12} />

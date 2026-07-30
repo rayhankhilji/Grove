@@ -55,6 +55,80 @@ your own workspace never interrupt you.
 
 ---
 
+## The boardroom
+
+Put a bench of advisers in a room, hand them your deck or your numbers, and let
+them argue. Each seat generates independently with only its own persona in
+context, so the voices stay distinct instead of collapsing into one narrator.
+Least-recently-spoken selection keeps a long call balanced — and naming someone
+puts them on the spot, so "Munger, what breaks this?" gets you Munger next.
+
+Eight advisers, each covering something the others don't:
+
+| Seat | What it's for |
+|---|---|
+| **Paul Graham** | Whether anyone actually wants this yet |
+| **Steve Jobs** | Whether it's worth making, and what to delete |
+| **Sam Altman** | Whether it's ambitious enough, and whether it compounds |
+| **Naval Ravikant** | Whether you own the leverage or are renting it |
+| **Andrej Karpathy** | Whether the technical claim survives an eval |
+| **Charlie Munger** | How this fails, and which incentive explains the behaviour |
+| **Patrick Collison** | Whether the details hold up under real use |
+| **Jeff Bezos** | Whether you're overthinking a reversible decision |
+
+**The personas are markdown, not config.** Each lives in
+`src/shared/personas/*.md` — a long, specific account of what that person has
+publicly argued, how they reason, what they push on, and how they actually
+talk. Editable, reviewable in a diff, and long enough to encode a real point of
+view rather than an adjective. A shared `_house.md` carries the call rules: two
+to five sentences, lead with the position, disagree by name, ask only when the
+answer would change your advice, and an explicit ban on the phrases that make
+generated dialogue read as slop.
+
+They are interpretations built from public material. They never claim to be the
+real people, never fabricate quotations, and say so if asked.
+
+Seven meeting kinds (board, pitch review, product critique, strategy, crisis,
+hiring debrief, roast), six preset benches, and minutes at the end. Decks are
+read on this Mac — PDFs through PDFKit, Office files straight out of their XML.
+
+---
+
+## The company brain
+
+A single collected context layer that every agent and every boardroom seat
+reads from. Explain your pricing, your positioning or last quarter's numbers
+once, and it is present in every room after that instead of being retyped into
+a prompt. Import files, or let agents file what they learn themselves via
+`brain_search` and `brain_add`. Pinned entries ride along in every conversation
+regardless of relevance; everything else is retrieved by match.
+
+---
+
+## Models
+
+Claude runs on the official Anthropic SDK. Everything else speaks the OpenAI
+chat-completions dialect, so one adapter covers the cheap end of the market —
+Anthropic's message shape stays canonical internally and is translated at the
+edge, streaming and tool calls included.
+
+| Provider | Why |
+|---|---|
+| **Anthropic** | Opus 5 / Sonnet 5 / Haiku 4.5 — judgement work |
+| **DeepSeek** | ~$0.27/Mtok. The cheapest capable option |
+| **Groq** | Absurdly fast — ideal for boardroom turn-taking |
+| **OpenRouter** | One key, hundreds of models |
+| **Google Gemini** | Huge context, generous free tier |
+| **OpenAI** | If you already have a key |
+| **Ollama** | Local, free, private. No network at all |
+
+Agents and boardroom seats pick models independently, so a long call can run on
+something cheap while the Chief of Staff stays on Opus.
+
+**Voice** is Fish Audio, with a voice slot per seat. Use voices you hold rights
+to — Fish's licensed marketplace voices or models you made yourself. Stobs will
+not help you clone a real person to put words in their mouth.
+
 ## The macOS part
 
 This is the half a browser tab cannot do.
@@ -167,16 +241,23 @@ them, so switching to Haiku doesn't produce a 400.
 
 ```
 src/
-├── shared/          Types and the connector catalogue — shared verbatim across processes
+├── shared/
+│   ├── personas/    One markdown file per adviser — the prompts, as prose
+│   ├── providers.ts Model catalogue across every provider
+│   └── types.ts     Shared verbatim across processes
 ├── main/
 │   ├── store.ts     Single JSON source of truth, atomic writes
 │   ├── vault.ts     Keychain-backed secrets: API key + per-provider credentials
-│   ├── tools.ts     Unified tool registry — workspace + native + connectors
+│   ├── tools.ts     Unified tool registry — workspace + brain + native + connectors
+│   ├── brain.ts     The collected context layer
+│   ├── boardroom.ts Live multi-persona calls
+│   ├── llm/         Provider dispatch + the OpenAI-compatible adapter
 │   ├── chat.ts      Streaming conversation loop
 │   ├── workflows.ts Workflow engine and the schedule ticker
 │   ├── agents/      Agent definitions and the shared execution runtime
 │   ├── connectors/  OAuth (PKCE + loopback), API clients, connection manager
-│   └── native/      Apple app bridge, attention sampler, menu bar, hotkey
+│   ├── voice/       Fish Audio text to speech
+│   └── native/      Apple bridge, attention, menu bar, hotkey, file extraction
 ├── preload/         The only surface the window can touch
 └── renderer/        React UI — views, custom icon set, brand marks
 ```
@@ -207,8 +288,9 @@ npm run verify
 
 It exercises the workspace tools, the tool registry and its wire encoding
 (Anthropic tool names can't contain dots, so ids are flattened), per-agent tool
-gating against live connections, the built-in team's wiring, and the scheduler's
-next-fire maths. `npm run build` runs it, plus both typechecks, before bundling.
+gating against live connections, the built-in team's wiring, provider/model
+resolution, persona-file parsing and prose quality, brain retrieval and pinning,
+and the scheduler's next-fire maths — 51 checks. `npm run build` runs it, plus both typechecks, before bundling.
 
 ---
 

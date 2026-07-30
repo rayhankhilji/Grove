@@ -12,7 +12,9 @@ const WORKSPACE_TOOLS = [
   'frame_decision',
   'resolve_decision',
   'remember',
-  'update_profile'
+  'update_profile',
+  'brain_search',
+  'brain_add'
 ]
 
 const base = (

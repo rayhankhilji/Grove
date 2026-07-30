@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk'
 import type { Agent, AppState, Run, RunStep, ToolCall } from '@shared/types'
 import { snapshot, definitionsFor, runToolByWireName, toolsForAgent, type ToolDef } from '../tools'
 import { describeLlmError, runTurn } from '../llm'
+import { context as brainContext } from '../brain'
 import { id, now, store } from '../store'
 
 const MAX_STEPS = 16
@@ -66,7 +67,9 @@ Be concrete. Cite the real numbers, names and dates you retrieved. If a tool fai
 
 ## Current state
 
-${snapshot(state)}`
+${snapshot(state)}${
+    brainContext(agent.role) ? `\n\n## What you already know about this company\n\n${brainContext(agent.role)}` : ''
+  }`
 }
 
 /* ── Execution ───────────────────────────────────────────────────────────── */

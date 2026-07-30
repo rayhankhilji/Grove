@@ -14,6 +14,7 @@ const emptyState = (): AppState => ({
   memories: [],
   briefings: [],
   attention: [],
+  brain: [],
   meetings: [],
   conversations: [],
   agents: BUILT_IN_AGENTS(),

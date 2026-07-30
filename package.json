@@ -12,7 +12,7 @@
     "start": "electron-vite preview",
     "dist": "npm run build && electron-builder --mac --publish never",
     "dist:dir": "npm run build && electron-builder --mac --dir --publish never",
-    "verify": "esbuild scripts/verify.ts --bundle --platform=node --format=esm --outfile=out/verify.mjs --alias:electron=./scripts/electron-stub.ts --alias:@shared=./src/shared --log-level=error && node out/verify.mjs"
+    "verify": "node scripts/build-verify.mjs && node out/verify.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0"

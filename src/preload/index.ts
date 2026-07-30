@@ -7,6 +7,7 @@ import type {
   Horizon,
   KeyStatus,
   Objective,
+  BrainEntry,
   Meeting,
   MeetingAttachment,
   Profile,
@@ -82,6 +83,14 @@ const api = {
   deleteMeeting: (meetingId: string): Promise<AppState> =>
     ipcRenderer.invoke('board:delete', meetingId),
   attachMaterials: (): Promise<MeetingAttachment[]> => ipcRenderer.invoke('board:attach'),
+
+  // Company brain
+  addBrain: (title: string, body: string, tags: string[]): Promise<AppState> =>
+    ipcRenderer.invoke('brain:add', title, body, tags),
+  updateBrain: (id: string, patch: Partial<BrainEntry>): Promise<AppState> =>
+    ipcRenderer.invoke('brain:update', id, patch),
+  deleteBrain: (id: string): Promise<AppState> => ipcRenderer.invoke('brain:delete', id),
+  importBrain: (): Promise<AppState> => ipcRenderer.invoke('brain:import'),
 
   // Providers & voice
   setProviderKey: (providerId: string, key: string): Promise<AppState> =>

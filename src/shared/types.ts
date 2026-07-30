@@ -86,6 +86,19 @@ export interface AttentionDay {
   apps: AttentionApp[]
 }
 
+export interface BrainEntry {
+  id: ID
+  title: string
+  body: string
+  /** Where it came from: 'you', 'agent', or a filename. */
+  source: string
+  tags: string[]
+  /** Pinned entries ride along in every prompt regardless of relevance. */
+  pinned: boolean
+  createdAt: ISO
+  updatedAt: ISO
+}
+
 export interface Briefing {
   date: string
   body: string
@@ -361,6 +374,7 @@ export interface AppState {
   memories: Memory[]
   briefings: Briefing[]
   attention: AttentionDay[]
+  brain: BrainEntry[]
   meetings: Meeting[]
   conversations: Conversation[]
   agents: Agent[]

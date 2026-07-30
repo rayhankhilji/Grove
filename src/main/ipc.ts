@@ -8,6 +8,7 @@ import type {
   KeyStatus,
   Objective,
   Profile,
+  BrainEntry,
   Meeting,
   MeetingAttachment,
   Settings,
@@ -38,6 +39,7 @@ import {
   type StartConfig
 } from './boardroom'
 import { extractText, SUPPORTED_EXTENSIONS } from './native/files'
+import { addEntry, removeEntry, updateEntry } from './brain'
 import { FISH_KEY_ID, listVoices, type FishVoice } from './voice/fish'
 import { llmKeyId } from './llm'
 import { currentFocus } from './native/context'
@@ -114,6 +116,37 @@ export const registerIpc = (): void => {
     })
     if (result.canceled) return []
     return Promise.all(result.filePaths.map(extractText))
+  })
+
+  /* ── Company brain ─────────────────────────────────────────────────── */
+
+  handle<[string, string, string[]], AppState>('brain:add', (title, body, tags) => {
+    addEntry(title, body, 'you', tags)
+    return store.get()
+  })
+
+  handle<[string, Partial<BrainEntry>], AppState>('brain:update', (entryId, patch) => {
+    updateEntry(entryId, patch)
+    return store.get()
+  })
+
+  handle<[string], AppState>('brain:delete', (entryId) => {
+    removeEntry(entryId)
+    return store.get()
+  })
+
+  handle<[], AppState>('brain:import', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Import into the brain',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Documents', extensions: SUPPORTED_EXTENSIONS }]
+    })
+    if (result.canceled) return store.get()
+    for (const path of result.filePaths) {
+      const file = await extractText(path)
+      if (file.text.trim()) addEntry(file.name, file.text, file.name, [])
+    }
+    return store.get()
   })
 
   /* ── Provider & voice keys ─────────────────────────────────────────── */

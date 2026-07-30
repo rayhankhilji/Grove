@@ -26,6 +26,7 @@ import {
   remindersList
 } from './native/apple'
 import { attentionReport, currentFocus } from './native/context'
+import { brainTools } from './brain'
 import { vault } from './vault'
 import { id, now, store } from './store'
 
@@ -583,6 +584,37 @@ const connectorTools: ToolDef[] = CONNECTORS.flatMap((connector) =>
  * OAuth and no network round trip, which is why they are always available
  * rather than gated behind a connection.
  */
+const brainToolDefs: ToolDef[] = [
+  {
+    id: 'brain_search',
+    label: 'Search the company brain',
+    description:
+      'Search the collected context layer — everything the principal has filed about their company, market, customers and history. Check here before asking them something they may already have written down.',
+    schema: object(
+      { query: str('What you are looking for.'), limit: num('Max entries, default 5.') },
+      ['query']
+    ),
+    write: false,
+    run: brainTools.search
+  },
+  {
+    id: 'brain_add',
+    label: 'File in the company brain',
+    description:
+      'Add durable knowledge about the company to the brain so every future agent and boardroom seat has it. Use for facts that will still matter next quarter, not for conversational detail.',
+    schema: object(
+      {
+        title: str('Short descriptive title.'),
+        body: str('The knowledge, written so it stands alone.'),
+        tags: str('Comma-separated tags.')
+      },
+      ['title', 'body']
+    ),
+    write: true,
+    run: brainTools.add
+  }
+]
+
 const nativeTools: ToolDef[] = [
   {
     id: 'mac.calendar_list',
@@ -712,7 +744,12 @@ const nativeTools: ToolDef[] = [
   }
 ]
 
-export const ALL_TOOLS: ToolDef[] = [...workspaceTools, ...nativeTools, ...connectorTools]
+export const ALL_TOOLS: ToolDef[] = [
+  ...workspaceTools,
+  ...brainToolDefs,
+  ...nativeTools,
+  ...connectorTools
+]
 
 const byId = new Map(ALL_TOOLS.map((tool) => [tool.id, tool]))
 

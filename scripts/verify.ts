@@ -6,12 +6,13 @@
  * Run with `npm run verify`. No API key and no window required.
  */
 import { CONNECTORS, connectorToolId } from '../src/shared/connectors'
-import { PERSONAS, personaFor } from '../src/shared/personas'
+import { HOUSE_RULES, PERSONAS, personaFor } from '../src/shared/personas'
 import { ALL_MODELS, PROVIDERS, providerOfModel } from '../src/shared/providers'
 import { BENCHES, MEETING_KINDS } from '../src/main/boardroom'
 import { MODELS } from '../src/shared/models'
 import { BUILT_IN_AGENTS } from '../src/main/agents/defaults'
 import { store } from '../src/main/store'
+import { addEntry, context as brainContext, search as brainSearch, updateEntry } from '../src/main/brain'
 import { vault } from '../src/main/vault'
 import { nextRun } from '../src/main/workflows'
 import {
@@ -206,11 +207,41 @@ const main = async (): Promise<void> => {
   group('Boardroom')
 
   const personaIds = PERSONAS.map((persona) => persona.id)
-  check(`the bench has 50+ advisers (${PERSONAS.length})`, PERSONAS.length >= 50)
+  check(`the bench is a tight ${PERSONAS.length}`, PERSONAS.length >= 6 && PERSONAS.length <= 10)
   check('persona ids are unique', new Set(personaIds).size === personaIds.length)
   check(
-    'every persona has a lens and a challenge',
-    PERSONAS.every((persona) => persona.lens.length > 40 && persona.pushback.length > 10)
+    'every persona file parsed its frontmatter',
+    PERSONAS.every(
+      (persona) => persona.id && persona.name && persona.domain && persona.brief && persona.tint
+    ),
+    PERSONAS.filter((persona) => !persona.brief).map((persona) => persona.name).join(', ')
+  )
+  check(
+    'every persona body is substantial prose, not a one-liner',
+    PERSONAS.every((persona) => persona.body.length > 1500),
+    PERSONAS.filter((persona) => persona.body.length <= 1500)
+      .map((persona) => `${persona.name}:${persona.body.length}`)
+      .join(', ')
+  )
+  check(
+    'every persona states what they believe and how they talk',
+    PERSONAS.every(
+      (persona) =>
+        persona.body.includes('actually believes') && persona.body.includes('How he talks')
+    ),
+    PERSONAS.filter((persona) => !persona.body.includes('How he talks'))
+      .map((persona) => persona.name)
+      .join(', ')
+  )
+  check(
+    'house rules ban the slop phrases',
+    ['Great question', 'It depends', 'unpack that'].every((phrase) =>
+      HOUSE_RULES.includes(phrase)
+    )
+  )
+  check(
+    'house rules carry the not-the-real-person constraint',
+    HOUSE_RULES.includes('interpretation, not the person')
   )
   check(
     'every suggested bench references real personas',
@@ -224,6 +255,28 @@ const main = async (): Promise<void> => {
   check(
     'benches seat between three and eight',
     BENCHES.every((bench) => bench.personaIds.length >= 3 && bench.personaIds.length <= 8)
+  )
+
+  /* ── Company brain ────────────────────────────────────────────────── */
+
+  group('Company brain')
+
+  addEntry('Pricing', 'We charge $49 per seat per month. Enterprise starts at $2k.', 'you', ['pricing'])
+  addEntry('Irrelevant note', 'Something about office plants.', 'you', [])
+  check('entries are stored', store.get().brain.length === 2)
+
+  const hits = brainSearch('pricing')
+  check('search finds by title and tag', hits[0]?.title === 'Pricing', hits.map((h) => h.title).join(', '))
+
+  check('unpinned context is empty without a query match', brainContext('plumbing') === '')
+  check('context includes a matching entry', brainContext('what is our pricing').includes('$49'))
+
+  // Pin by title — addEntry unshifts, so positional indexing is a trap.
+  const plants = store.get().brain.find((entry) => entry.title === 'Irrelevant note')!
+  updateEntry(plants.id, { pinned: true })
+  check(
+    'pinned entries ride along regardless of relevance',
+    brainContext('completely unrelated query').includes('office plants')
   )
 
   /* ── Scheduler ────────────────────────────────────────────────────── */

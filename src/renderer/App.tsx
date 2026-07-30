@@ -6,6 +6,7 @@ import { Agents } from './views/Agents'
 import { Attention } from './views/Attention'
 import { Automations } from './views/Automations'
 import { Boardroom } from './views/Boardroom'
+import { Brain } from './views/Brain'
 import { Chat } from './views/Chat'
 import { Connections } from './views/Connections'
 import { Decisions } from './views/Decisions'
@@ -22,6 +23,7 @@ type View =
   | 'automations'
   | 'connections'
   | 'attention'
+  | 'brain'
   | 'objectives'
   | 'decisions'
   | 'providers'
@@ -34,6 +36,7 @@ const NAV: { id: View; label: string; icon: IconName; group: number }[] = [
   { id: 'agents', label: 'Agents', icon: 'tool', group: 1 },
   { id: 'automations', label: 'Automations', icon: 'workflows', group: 1 },
   { id: 'connections', label: 'Connections', icon: 'connections', group: 1 },
+  { id: 'brain', label: 'Brain', icon: 'memory', group: 2 },
   { id: 'attention', label: 'Attention', icon: 'clock', group: 2 },
   { id: 'objectives', label: 'Objectives', icon: 'objectives', group: 2 },
   { id: 'decisions', label: 'Decisions', icon: 'decisions', group: 2 },
@@ -84,7 +87,8 @@ export const App = (): ReactNode => {
     agents: liveRuns,
     objectives: state.objectives.filter((objective) => objective.status === 'active').length,
     decisions: state.decisions.filter((decision) => decision.status === 'open').length,
-    connections: state.connections.filter((entry) => entry.status === 'connected').length
+    connections: state.connections.filter((entry) => entry.status === 'connected').length,
+    brain: state.brain.length
   }
 
   return (
@@ -174,6 +178,7 @@ export const App = (): ReactNode => {
         {view === 'agents' ? <Agents /> : null}
         {view === 'automations' ? <Automations /> : null}
         {view === 'connections' ? <Connections /> : null}
+        {view === 'brain' ? <Brain /> : null}
         {view === 'attention' ? <Attention /> : null}
         {view === 'objectives' ? <Objectives /> : null}
         {view === 'decisions' ? <Decisions /> : null}
