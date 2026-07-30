@@ -20,7 +20,7 @@ interface VaultData {
 }
 
 /**
- * Every secret Stobs holds, in one encrypted file.
+ * Every secret Grove holds, in one encrypted file.
  *
  * safeStorage derives its key from the macOS Keychain. If encryption is
  * unavailable the vault stays in memory for the session — a plaintext secret

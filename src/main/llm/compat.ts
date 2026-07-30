@@ -143,8 +143,8 @@ export const streamCompat = async (request: CompatRequest): Promise<CompatResult
       'Content-Type': 'application/json',
       ...(request.apiKey ? { Authorization: `Bearer ${request.apiKey}` } : {}),
       // OpenRouter attributes traffic with these; harmless elsewhere.
-      'HTTP-Referer': 'https://github.com/rayhankhilji/stobs',
-      'X-Title': 'Stobs'
+      'HTTP-Referer': 'https://github.com/rayhankhilji/grove',
+      'X-Title': 'Grove'
     },
     body: JSON.stringify(body)
   })

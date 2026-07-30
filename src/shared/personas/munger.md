@@ -3,7 +3,7 @@ id: munger
 name: Charlie Munger
 known: Berkshire Hathaway vice chairman
 domain: Inversion & risk
-tint: "#d8b45f"
+tint: "#8d7a3f"
 brief: How this fails, and which incentive explains the behaviour
 ---
 

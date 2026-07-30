@@ -1,5 +1,5 @@
-appId: com.stobs.app
-productName: Stobs
+appId: com.grove.app
+productName: Grove
 directories:
   buildResources: build
   output: dist
@@ -11,20 +11,20 @@ mac:
   target:
     - dmg
     - zip
-  # Stobs reaches the Apple apps and reads the frontmost window title, so macOS
+  # Grove reaches the Apple apps and reads the frontmost window title, so macOS
   # requires these usage strings before it will show the permission prompts.
   extendInfo:
     NSAppleEventsUsageDescription: >-
-      Stobs uses Calendar, Reminders, Notes and Mail on your Mac to read and
+      Grove uses Calendar, Reminders, Notes and Mail on your Mac to read and
       create items on your behalf.
     NSCalendarsUsageDescription: >-
-      Stobs reads and creates events in your calendar.
+      Grove reads and creates events in your calendar.
     NSRemindersUsageDescription: >-
-      Stobs reads and creates your reminders.
+      Grove reads and creates your reminders.
     LSUIElement: false
   hardenedRuntime: true
   gatekeeperAssist: false
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
 dmg:
-  artifactName: Stobs-${version}-${arch}.dmg
+  artifactName: Grove-${version}-${arch}.dmg

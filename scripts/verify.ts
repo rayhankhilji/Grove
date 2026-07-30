@@ -1,5 +1,5 @@
 /**
- * Headless checks over the parts of Stobs that carry real logic: the workspace
+ * Headless checks over the parts of Grove that carry real logic: the workspace
  * tool layer, the tool registry and its wire encoding, per-agent tool gating,
  * the built-in team's wiring, and the scheduler's next-fire maths.
  *
@@ -47,7 +47,7 @@ const main = async (): Promise<void> => {
 
   group('Workspace tools')
 
-  await runTool('update_profile', { name: 'Rayhan', role: 'founder', venture: 'Stobs' })
+  await runTool('update_profile', { name: 'Rayhan', role: 'founder', venture: 'Grove' })
   check('profile persists', store.get().profile.name === 'Rayhan')
 
   await runTool('set_objective', {

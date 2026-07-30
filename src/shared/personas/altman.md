@@ -3,7 +3,7 @@ id: altman
 name: Sam Altman
 known: OpenAI CEO, former YC president
 domain: Ambition & scale
-tint: "#6ea8e8"
+tint: "#4a5f7a"
 brief: Whether this is ambitious enough, and whether it compounds
 ---
 

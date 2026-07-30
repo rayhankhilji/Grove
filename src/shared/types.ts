@@ -1,4 +1,4 @@
-/** The Stobs domain. Shared verbatim between main, preload and renderer. */
+/** The Grove domain. Shared verbatim between main, preload and renderer. */
 
 export type ID = string
 export type ISO = string
@@ -356,7 +356,7 @@ export interface Settings {
   automationsEnabled: boolean
   /** Frontmost-app sampling for the attention ledger. Never captures pixels. */
   attentionEnabled: boolean
-  /** Keep Stobs in the menu bar with live run status. */
+  /** Keep Grove in the menu bar with live run status. */
   menuBarEnabled: boolean
   /** Model used for boardroom seats — deliberately separate from the agents'. */
   boardroomModel: string

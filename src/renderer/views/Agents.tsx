@@ -7,8 +7,8 @@ import { useStore } from '../lib/state'
 import { Icon, type IconName } from '../components/Icon'
 import { Avatar, Empty, Field, LiveInput, Sheet, relative } from '../components/ui'
 
-const GLYPHS: IconName[] = ['today', 'council', 'mail', 'calendar', 'objectives', 'doc', 'bolt', 'memory', 'search', 'agents']
-const TINTS = ['#4ec5b6', '#6ea8e8', '#b48ce0', '#5cc08a', '#d8b45f', '#e0736b', '#7f8ff5', '#54c0d8']
+const GLYPHS: IconName[] = ['today', 'chat', 'mail', 'calendar', 'objectives', 'doc', 'bolt', 'memory', 'search', 'agents']
+const TINTS = ['#2f5d43', '#7a6a4f', '#8a5a3c', '#4a5f7a', '#6b5b7b', '#a4432f', '#3f6f4f', '#8d7a3f']
 
 const WORKSPACE_TOOLS: { id: string; label: string }[] = [
   { id: 'review', label: 'Review the workspace' },

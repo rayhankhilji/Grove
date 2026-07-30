@@ -4,7 +4,7 @@ import { vault } from '../vault'
  * Fish Audio text-to-speech.
  *
  * Voices are chosen by the user from their own Fish account — either licensed
- * marketplace voices or models they created and hold the rights to. Stobs maps
+ * marketplace voices or models they created and hold the rights to. Grove maps
  * a voice id to a boardroom seat; it never creates or requests a clone of a
  * real person, and the personas are always labelled as interpretations.
  */

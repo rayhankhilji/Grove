@@ -3,7 +3,7 @@ import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const dir = mkdtempSync(join(tmpdir(), 'stobs-verify-'))
+const dir = mkdtempSync(join(tmpdir(), 'grove-verify-'))
 
 export const app = {
   getPath: (): string => dir,

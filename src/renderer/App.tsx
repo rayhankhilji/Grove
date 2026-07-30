@@ -31,12 +31,12 @@ type View =
 
 const NAV: { id: View; label: string; icon: IconName; group: number }[] = [
   { id: 'today', label: 'Today', icon: 'today', group: 0 },
-  { id: 'chat', label: 'Chat', icon: 'council', group: 0 },
-  { id: 'boardroom', label: 'Boardroom', icon: 'agents', group: 0 },
-  { id: 'agents', label: 'Agents', icon: 'tool', group: 1 },
+  { id: 'chat', label: 'Chat', icon: 'chat', group: 0 },
+  { id: 'boardroom', label: 'Boardroom', icon: 'chat', group: 0 },
+  { id: 'agents', label: 'Agents', icon: 'agents', group: 1 },
   { id: 'automations', label: 'Automations', icon: 'workflows', group: 1 },
   { id: 'connections', label: 'Connections', icon: 'connections', group: 1 },
-  { id: 'brain', label: 'Brain', icon: 'memory', group: 2 },
+  { id: 'brain', label: 'Brain', icon: 'brain', group: 2 },
   { id: 'attention', label: 'Attention', icon: 'clock', group: 2 },
   { id: 'objectives', label: 'Objectives', icon: 'objectives', group: 2 },
   { id: 'decisions', label: 'Decisions', icon: 'decisions', group: 2 },
@@ -94,18 +94,15 @@ export const App = (): ReactNode => {
   return (
     <div className="shell">
       <aside className="sidebar">
-        <div className="brand">
-          <span className="mark">
-            <Icon name="logo" size={19} strokeWidth={1.8} />
-          </span>
-          <h1>Stobs</h1>
+        <div className="wordmark">
+          <h1>Grove</h1>
         </div>
 
         <nav className="nav">
           {NAV.map((item, index) => (
             <div key={item.id}>
               {index > 0 && NAV[index - 1]!.group !== item.group ? (
-                <div style={{ height: 12 }} />
+                <div className="nav-gap" />
               ) : null}
               <button
                 className="nav-item"

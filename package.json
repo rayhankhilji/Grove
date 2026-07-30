@@ -1,9 +1,9 @@
 {
-  "name": "stobs",
+  "name": "grove",
   "version": "1.0.0",
-  "description": "Stobs \u2014 an AI personal CEO for macOS. Bring your own key.",
+  "description": "Grove \u2014 an AI personal CEO for macOS. Bring your own key.",
   "license": "MIT",
-  "author": "Stobs",
+  "author": "Grove",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

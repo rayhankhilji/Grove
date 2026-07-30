@@ -31,7 +31,7 @@ const chunk = (type: string, data: Buffer): Buffer => {
 }
 
 /**
- * The Stobs mark, drawn as a template PNG at runtime.
+ * The Grove mark, drawn as a template PNG at runtime.
  *
  * Building it in code rather than shipping a binary asset keeps the icon in
  * step with the rest of the icon set, and template images let macOS invert it
@@ -105,7 +105,7 @@ export const refreshTray = (): void => {
   const openTasks = state.tasks.filter((task) => !task.done).length
 
   tray.setToolTip(
-    running > 0 ? `Stobs — ${running} agent${running === 1 ? '' : 's'} working` : 'Stobs'
+    running > 0 ? `Grove — ${running} agent${running === 1 ? '' : 's'} working` : 'Grove'
   )
   // A short title beside the icon is the least intrusive way to show life.
   tray.setTitle(waiting.length > 0 ? ` ${waiting.length}!` : running > 0 ? ` ${running}` : '')
@@ -125,7 +125,7 @@ export const refreshTray = (): void => {
         : []),
       { type: 'separator' },
       { label: `Today · ${openTasks} open task${openTasks === 1 ? '' : 's'}`, click: () => go('today') },
-      { label: 'Ask Stobs…', accelerator: 'Alt+Space', click: () => go('chat') },
+      { label: 'Ask Grove…', accelerator: 'Alt+Space', click: () => go('chat') },
       { label: 'Agents', click: () => go('agents') },
       { label: 'Attention', click: () => go('attention') },
       { type: 'separator' },
@@ -152,8 +152,8 @@ export const refreshTray = (): void => {
         }
       },
       { type: 'separator' },
-      { label: 'Open Stobs', click: show },
-      { label: 'Quit Stobs', role: 'quit' }
+      { label: 'Open Grove', click: show },
+      { label: 'Quit Grove', role: 'quit' }
     ])
   )
 }

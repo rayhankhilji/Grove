@@ -18,14 +18,12 @@ const createWindow = (): BrowserWindow => {
     minWidth: 980,
     minHeight: 660,
     show: false,
-    title: 'Stobs',
+    title: 'Grove',
     // Translucent chrome that picks up the desktop behind it — the app should
     // feel like part of macOS, not a browser tab.
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
-    backgroundColor: '#00000000',
+    backgroundColor: '#FBF8F2',
     titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 19, y: 22 },
+    trafficLightPosition: { x: 20, y: 24 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,

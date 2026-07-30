@@ -66,8 +66,8 @@ const Steps = ({ calls, live }: { calls: ToolCall[]; live: boolean }): ReactNode
 
 const AnswerHead = ({ agent, model }: { agent: Agent | undefined; model: string }): ReactNode => (
   <div className="answer-head">
-    <Avatar glyph={agent?.glyph ?? 'council'} tint={agent?.tint ?? '#4ec5b6'} size={22} />
-    <span className="name">{agent?.name ?? 'Stobs'}</span>
+    <Avatar glyph={agent?.glyph ?? 'chat'} tint={agent?.tint ?? '#2f5d43'} size={22} />
+    <span className="name">{agent?.name ?? 'Grove'}</span>
     <span className="model">{MODELS.find((entry) => entry.id === model)?.label ?? model}</span>
   </div>
 )
@@ -205,7 +205,7 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
       <div className="scroll" ref={scroller} onScroll={onScroll}>
         <div className="thread">
           {conversation.messages.length === 0 && !streaming ? (
-            <Empty icon="council" title={`${agent?.name ?? 'Your CEO'} is in.`}>
+            <Empty icon="chat" title={`${agent?.name ?? 'Your CEO'} is in.`}>
               {agent?.role ?? 'Tell it what you are working on, what is stuck, or what you are deciding.'}
               {connectedCount === 0
                 ? ' Connect your tools to let it act on your behalf, not just advise.'
@@ -292,7 +292,7 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
             ref={textarea}
             rows={1}
             value={draft}
-            placeholder={`Ask ${agent?.name ?? 'Stobs'}…`}
+            placeholder={`Ask ${agent?.name ?? 'Grove'}…`}
             disabled={streaming}
             onChange={(event) => {
               setDraft(event.target.value)

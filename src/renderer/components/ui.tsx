@@ -220,23 +220,14 @@ export const Popover = ({
 export const Avatar = ({
   glyph,
   tint,
-  size = 34
+  size = 30
 }: {
   glyph: string
   tint: string
   size?: number
 }): ReactNode => (
-  <div
-    className="avatar"
-    style={{
-      width: size,
-      height: size,
-      borderRadius: Math.round(size * 0.3),
-      background: `${tint}22`,
-      color: tint
-    }}
-  >
-    <Icon name={glyph as IconName} size={Math.round(size * 0.55)} />
+  <div className="avatar" style={{ width: size, height: size, color: tint }}>
+    <Icon name={glyph as IconName} size={Math.round(size * 0.72)} />
   </div>
 )
 

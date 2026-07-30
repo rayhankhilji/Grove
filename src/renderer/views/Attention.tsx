@@ -17,7 +17,7 @@ const RANGES = [
 ]
 
 /** A palette walk, so the same app keeps the same colour across renders. */
-const TINTS = ['#4ec5b6', '#6ea8e8', '#b48ce0', '#5cc08a', '#d8b45f', '#e0736b', '#7f8ff5', '#54c0d8']
+const TINTS = ['#2f5d43', '#7a6a4f', '#8a5a3c', '#4a5f7a', '#6b5b7b', '#a4432f', '#3f6f4f', '#8d7a3f']
 const tintFor = (name: string): string => {
   let hash = 0
   for (const character of name) hash = (hash * 31 + character.charCodeAt(0)) >>> 0
@@ -81,7 +81,7 @@ export const Attention = (): ReactNode => {
         <div className="body">
           {!state.settings.attentionEnabled ? (
             <div className="notice info">
-              Recording is off. Stobs cannot tell you where your time went while it is not watching
+              Recording is off. Grove cannot tell you where your time went while it is not watching
               which app is frontmost.
             </div>
           ) : null}
@@ -105,7 +105,7 @@ export const Attention = (): ReactNode => {
 
           {ranked.length === 0 ? (
             <Empty icon="today" title="Nothing recorded yet.">
-              Stobs samples which application is frontmost every 20 seconds while you are active. Give
+              Grove samples which application is frontmost every 20 seconds while you are active. Give
               it a little while, then come back — your agents can use this to check whether your hours
               match your priorities.
             </Empty>
@@ -152,7 +152,7 @@ export const Attention = (): ReactNode => {
           )}
 
           <p className="muted">
-            Stobs records application names and durations only. It never captures screen contents,
+            Grove records application names and durations only. It never captures screen contents,
             keystrokes or window text beyond what an app puts in its own title bar, and everything
             stays on this Mac.
           </p>

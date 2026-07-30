@@ -476,7 +476,7 @@ export const Boardroom = (): ReactNode => {
       <div className="scroll">
         <div className="body">
           {state.meetings.length === 0 ? (
-            <Empty icon="council" title="No calls yet.">
+            <Empty icon="chat" title="No calls yet.">
               Put a bench of advisers in a room, hand them your deck or your numbers, and let them
               argue. You can cut in at any point. Minutes and decisions land back in your workspace.
             </Empty>

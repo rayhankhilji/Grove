@@ -1,268 +1,270 @@
 import type { ReactNode } from 'react'
 
 /**
- * Stobs' icon set. Every glyph is drawn on the same 20×20 grid with a 1.6
- * stroke and round joins, so the whole UI reads as one hand. Provider marks
- * are simplified geometry rather than official logos.
+ * Grove's icon set — drawn rather than assembled.
+ *
+ * Everything sits on a 24×24 grid at a 1.15 stroke with round caps and joins,
+ * and leans on open curves instead of closed geometric shapes, so the set reads
+ * as pen work next to the serif rather than as a UI kit.
  */
 const PATHS: Record<string, ReactNode> = {
   /* ── Navigation ──────────────────────────────────────────────────────── */
-  // A horizon with a rising arc — the start of the day.
+  // A sun clearing the horizon.
   today: (
     <>
-      <path d="M3 14.5h14" />
-      <path d="M6.2 14.5a3.8 3.8 0 0 1 7.6 0" />
-      <path d="M10 3.5v2M4.6 5.9l1.3 1.3M15.4 5.9l-1.3 1.3" />
+      <path d="M3.4 17.4h17.2" />
+      <path d="M7.6 17.4a4.4 4.4 0 0 1 8.8 0" />
+      <path d="M12 4.1v2.4" />
+      <path d="M5.6 7l1.7 1.7M18.4 7l-1.7 1.7" />
+      <path d="M3.9 13.2h1.7M18.4 13.2h1.7" />
     </>
   ),
-  // Two minds overlapping — a council, not a chat bubble.
-  council: (
+  // Two speech shapes leaning into each other.
+  chat: (
     <>
-      <circle cx="7.6" cy="10" r="4.6" />
-      <circle cx="12.4" cy="10" r="4.6" />
+      <path d="M4 15.6c-1-1.2-1.5-2.6-1.5-4.1C2.5 7.6 6 4.6 10.3 4.6s7.8 3 7.8 6.9c0 3.8-3.5 6.9-7.8 6.9a9.4 9.4 0 0 1-2.6-.4L4 19.5z" />
+      <path d="M15.8 18.6c1.9-.3 3.6-1.2 4.6-2.5" />
     </>
   ),
-  // A processing core with legs.
+  // A sapling — a working agent in a grove.
   agents: (
     <>
-      <rect x="6" y="6" width="8" height="8" rx="2" />
-      <path d="M8.4 3.4v2.6M11.6 3.4v2.6M8.4 14v2.6M11.6 14v2.6" />
-      <path d="M3.4 8.4H6M3.4 11.6H6M14 8.4h2.6M14 11.6h2.6" />
+      <path d="M12 20.4V9.2" />
+      <path d="M12 13.6c-2.9 0-4.6-1.7-4.9-4.6 2.9-.3 4.6 1.4 4.9 4.6z" />
+      <path d="M12 11.4c2.6 0 4.2-1.6 4.5-4.2-2.6-.3-4.2 1.3-4.5 4.2z" />
+      <path d="M9 20.4h6" />
     </>
   ),
-  // Nodes joined into a flow.
+  // Branching growth.
   workflows: (
     <>
-      <circle cx="5" cy="5.4" r="2.2" />
-      <circle cx="15" cy="10" r="2.2" />
-      <circle cx="5" cy="14.6" r="2.2" />
-      <path d="M7 6.4c3.4 1 4.2 2.2 5.9 3M7 13.6c3.4-1 4.2-2.2 5.9-3" />
+      <path d="M12 20.5V6.3" />
+      <path d="M12 12.6 7.2 8.8" />
+      <path d="M12 15.4l4.4-3.5" />
+      <circle cx="12" cy="4.6" r="1.7" />
+      <circle cx="5.9" cy="7.8" r="1.7" />
+      <circle cx="17.7" cy="10.8" r="1.7" />
     </>
   ),
-  // A hub with spokes reaching outward.
+  // Roots reaching out and joining.
   connections: (
     <>
-      <circle cx="10" cy="10" r="2.4" />
-      <circle cx="16.2" cy="5.4" r="1.7" />
-      <circle cx="4" cy="7.6" r="1.7" />
-      <circle cx="7.4" cy="16" r="1.7" />
-      <path d="M11.9 8.6l2.9-2.1M7.7 9.2L5.6 8.4M9.2 12.2l-1 2.2" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M12 9.5C12 6.7 13.9 4.6 17 4.2" />
+      <path d="M9.7 10.9C7.4 9.5 6.2 7.4 6.4 4.6" />
+      <path d="M10.9 14.2c-1.7 2-2 4.3-1 6.9" />
+      <path d="M14.4 13.5c2.3.5 3.8 1.9 4.6 4.2" />
     </>
   ),
-  // Concentric rings with a struck centre.
+  // A ring of growth, struck through the centre.
   objectives: (
     <>
-      <circle cx="10" cy="10" r="7" />
-      <circle cx="10" cy="10" r="3.4" />
-      <circle cx="10" cy="10" r="0.5" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="8.2" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
     </>
   ),
-  // A path that forks and commits to one branch.
+  // A path forking, one branch chosen.
   decisions: (
     <>
-      <path d="M10 17V11" />
-      <path d="M10 11 5 6.6" />
-      <path d="M10 11l5-4.4" />
-      <circle cx="4.2" cy="5.4" r="1.6" />
-      <circle cx="15.8" cy="5.4" r="1.6" />
+      <path d="M12 20.6v-6.9" />
+      <path d="M12 13.7 6.3 8.4" />
+      <path d="M12 13.7l5.7-5.3" />
+      <circle cx="5.2" cy="6.6" r="1.7" />
+      <circle cx="18.8" cy="6.6" r="1.7" />
     </>
   ),
-  // Sliders read as settings without the tired gear.
+  // Sliders, drawn loose.
   settings: (
     <>
-      <path d="M3.2 6.4h13.6M3.2 13.6h13.6" />
-      <circle cx="8" cy="6.4" r="2.1" />
-      <circle cx="13" cy="13.6" r="2.1" />
+      <path d="M3.8 8.2h16.4M3.8 15.8h16.4" />
+      <circle cx="9.4" cy="8.2" r="2.1" />
+      <circle cx="15.2" cy="15.8" r="2.1" />
     </>
   ),
-
-  /* ── Actions ─────────────────────────────────────────────────────────── */
-  send: (
+  // A pressed leaf — the collected context.
+  brain: (
     <>
-      <path d="M10 16V4.6" />
-      <path d="M5.4 9.2 10 4.4l4.6 4.8" />
-    </>
-  ),
-  plus: <path d="M10 4.6v10.8M4.6 10h10.8" />,
-  close: <path d="M5.6 5.6l8.8 8.8M14.4 5.6l-8.8 8.8" />,
-  check: <path d="M4.6 10.6l3.4 3.3 7.4-7.8" />,
-  copy: (
-    <>
-      <rect x="7.2" y="7.2" width="9" height="9" rx="2.2" />
-      <path d="M12.8 7.2V5.9a2.2 2.2 0 0 0-2.2-2.2H5.9a2.2 2.2 0 0 0-2.2 2.2v4.7a2.2 2.2 0 0 0 2.2 2.2h1.3" />
-    </>
-  ),
-  retry: (
-    <>
-      <path d="M16 10a6 6 0 1 1-2.1-4.6" />
-      <path d="M16.3 3.6v3.7h-3.7" />
-    </>
-  ),
-  play: <path d="M7 4.9 15.4 10 7 15.1z" strokeLinejoin="round" />,
-  stop: <rect x="6.2" y="6.2" width="7.6" height="7.6" rx="1.8" />,
-  pause: <path d="M7.8 5.4v9.2M12.2 5.4v9.2" />,
-  trash: (
-    <>
-      <path d="M4.4 6.2h11.2" />
-      <path d="M8.2 6.2V4.9a1.3 1.3 0 0 1 1.3-1.3h1a1.3 1.3 0 0 1 1.3 1.3v1.3" />
-      <path d="M5.9 6.2l.7 8.6a1.6 1.6 0 0 0 1.6 1.5h3.6a1.6 1.6 0 0 0 1.6-1.5l.7-8.6" />
-    </>
-  ),
-  chevron: <path d="M8.2 5.4 12.8 10l-4.6 4.6" />,
-  chevronDown: <path d="M5.4 8.2 10 12.8l4.6-4.6" />,
-  search: (
-    <>
-      <circle cx="9" cy="9" r="5" />
-      <path d="M12.8 12.8 16.4 16.4" />
-    </>
-  ),
-  // A four-point star for model reasoning.
-  sparkle: (
-    <>
-      <path d="M10 3.4c.7 3.6 1.5 4.5 5.2 5.2-3.7.7-4.5 1.6-5.2 5.2-.7-3.6-1.5-4.5-5.2-5.2 3.7-.7 4.5-1.6 5.2-5.2z" strokeLinejoin="round" />
-      <path d="M15.2 13.2c.3 1.6.7 2 2.3 2.3-1.6.3-2 .7-2.3 2.3-.3-1.6-.7-2-2.3-2.3 1.6-.3 2-.7 2.3-2.3z" strokeLinejoin="round" />
+      <path d="M5.4 18.8c-1.8-5 .9-11 8-12.6 2.7-.6 4.6-1 5.6-1.6.5 1.3.8 3.2.4 6-1 6.9-6.7 10.3-11.6 9.2" />
+      <path d="M6.2 19.4C8.5 14.6 11.9 11 16.4 8.6" />
     </>
   ),
   clock: (
     <>
-      <circle cx="10" cy="10" r="6.6" />
-      <path d="M10 6.2V10l2.6 1.8" />
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M12 7.3V12l3.2 2.2" />
+    </>
+  ),
+  bolt: <path d="M13.3 3.4 6.6 13.1h4.8l-.5 7.2 6.7-9.7h-4.8z" strokeLinejoin="round" />,
+
+  /* ── Actions ─────────────────────────────────────────────────────────── */
+  send: (
+    <>
+      <path d="M12 19.2V5.4" />
+      <path d="M6.5 10.8 12 5.1l5.5 5.7" />
+    </>
+  ),
+  plus: <path d="M12 5.4v13.2M5.4 12h13.2" />,
+  close: <path d="M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4" />,
+  check: <path d="M5.4 12.5l3.9 3.9 8.9-9.3" />,
+  copy: (
+    <>
+      <rect x="8.6" y="8.6" width="10.8" height="10.8" rx="2.6" />
+      <path d="M15.4 8.6V7a2.6 2.6 0 0 0-2.6-2.6H7a2.6 2.6 0 0 0-2.6 2.6v5.8A2.6 2.6 0 0 0 7 15.4h1.6" />
+    </>
+  ),
+  retry: (
+    <>
+      <path d="M19.4 12a7.4 7.4 0 1 1-2.6-5.6" />
+      <path d="M19.6 4.2v3.9h-3.9" />
+    </>
+  ),
+  play: <path d="M8.4 5.6 18.4 12 8.4 18.4z" strokeLinejoin="round" />,
+  pause: <path d="M9.2 6.2v11.6M14.8 6.2v11.6" />,
+  stop: <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="2" />,
+  trash: (
+    <>
+      <path d="M5 7.4h14" />
+      <path d="M9.8 7.4V6a1.6 1.6 0 0 1 1.6-1.6h1.2A1.6 1.6 0 0 1 14.2 6v1.4" />
+      <path d="M6.8 7.4l.8 10.4a2 2 0 0 0 2 1.8h4.8a2 2 0 0 0 2-1.8l.8-10.4" />
+    </>
+  ),
+  chevron: <path d="M9.8 6.4 15.4 12l-5.6 5.6" />,
+  search: (
+    <>
+      <circle cx="10.8" cy="10.8" r="6" />
+      <path d="M15.3 15.3 19.8 19.8" />
+    </>
+  ),
+  // A four-point star, hand-drawn.
+  sparkle: (
+    <>
+      <path
+        d="M12 3.6c.9 4.4 1.9 5.5 6.3 6.4-4.4.9-5.4 1.9-6.3 6.3-.9-4.4-1.9-5.4-6.3-6.3 4.4-.9 5.4-2 6.3-6.4z"
+        strokeLinejoin="round"
+      />
+      <path d="M17.6 16c.4 1.9.9 2.4 2.8 2.8-1.9.4-2.4.9-2.8 2.8-.4-1.9-.9-2.4-2.8-2.8 1.9-.4 2.4-.9 2.8-2.8z" strokeLinejoin="round" />
     </>
   ),
   calendar: (
     <>
-      <rect x="3.6" y="4.8" width="12.8" height="11.6" rx="2.2" />
-      <path d="M3.6 8.4h12.8M7.2 3.4v2.6M12.8 3.4v2.6" />
+      <rect x="4" y="5.8" width="16" height="14.2" rx="2.6" />
+      <path d="M4 10.2h16M8.6 3.8v3.2M15.4 3.8v3.2" />
     </>
   ),
   mail: (
     <>
-      <rect x="3.2" y="5" width="13.6" height="10" rx="2.2" />
-      <path d="M4 6.6l5.1 3.8a1.5 1.5 0 0 0 1.8 0L16 6.6" />
+      <rect x="3.2" y="6" width="17.6" height="12" rx="2.6" />
+      <path d="M4.2 7.9 10.7 12.7a2.2 2.2 0 0 0 2.6 0l6.5-4.8" />
     </>
   ),
-  bolt: <path d="M11 3.2 5.4 11h4l-.4 5.8L14.6 9h-4z" strokeLinejoin="round" />,
-  // A branch handing off to another track.
+  // A hand-off between two tracks.
   handoff: (
     <>
-      <path d="M3.6 10h6.2a3 3 0 0 0 3-3V5.6" />
-      <path d="M10.4 3.4 12.8 5.6l-2.4 2.2" />
-      <path d="M16.4 14h-6.2a3 3 0 0 1-3-3v-1" />
-      <path d="M14 11.8 16.4 14 14 16.2" />
+      <path d="M4 12h7.4a3.4 3.4 0 0 0 3.4-3.4V6.8" />
+      <path d="M12.4 4.4 14.9 6.8l-2.5 2.4" />
+      <path d="M20 17h-7.4a3.4 3.4 0 0 1-3.4-3.4v-1.2" />
+      <path d="M17.5 14.6 20 17l-2.5 2.4" />
     </>
   ),
   tool: (
-    <>
-      <path d="M12.4 3.8a3.9 3.9 0 0 0-4.6 5.1l-4.3 4.3a1.6 1.6 0 0 0 2.3 2.3l4.3-4.3a3.9 3.9 0 0 0 5.1-4.6l-2.2 2.2-2.4-.4-.4-2.4z" strokeLinejoin="round" />
-    </>
+    <path
+      d="M14.9 4.6a4.7 4.7 0 0 0-5.6 6.1l-5.2 5.2a1.9 1.9 0 0 0 2.7 2.7l5.2-5.2a4.7 4.7 0 0 0 6.1-5.6l-2.6 2.6-2.9-.5-.5-2.9z"
+      strokeLinejoin="round"
+    />
   ),
   alert: (
     <>
-      <circle cx="10" cy="10" r="6.8" />
-      <path d="M10 6.4v4.2M10 13.4v.1" />
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M12 7.6v5M12 16.1v.1" />
     </>
   ),
   external: (
     <>
-      <path d="M11 4.4h4.6V9" />
-      <path d="M15.6 4.4 9.4 10.6" />
-      <path d="M14 11.6v3.2a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8V8a1.8 1.8 0 0 1 1.8-1.8h3.2" />
+      <path d="M13.6 5h5.4v5.4" />
+      <path d="M19 5 11.4 12.6" />
+      <path d="M17 14v3.9a2.1 2.1 0 0 1-2.1 2.1H6.6a2.1 2.1 0 0 1-2.1-2.1V9.6a2.1 2.1 0 0 1 2.1-2.1h3.9" />
     </>
   ),
   user: (
     <>
-      <circle cx="10" cy="7.2" r="3" />
-      <path d="M4.6 16.2a5.6 5.6 0 0 1 10.8 0" />
-    </>
-  ),
-  memory: (
-    <>
-      <path d="M10 4.2a3 3 0 0 0-3 3v5.6a3 3 0 0 0 6 0V7.2a3 3 0 0 0-3-3z" />
-      <path d="M7 8.6H4.8M13 8.6h2.2M7 11.4H4.8M13 11.4h2.2" />
+      <circle cx="12" cy="8.4" r="3.6" />
+      <path d="M5.2 19.6a6.8 6.8 0 0 1 13.6 0" />
     </>
   ),
   doc: (
     <>
-      <path d="M5.2 4.4a1.8 1.8 0 0 1 1.8-1.8h4l4 4v9a1.8 1.8 0 0 1-1.8 1.8H7a1.8 1.8 0 0 1-1.8-1.8z" />
-      <path d="M10.8 2.8v3.8h3.9" />
+      <path d="M6 5.2A2.2 2.2 0 0 1 8.2 3h5.2l5 5v10.8a2.2 2.2 0 0 1-2.2 2.2H8.2a2.2 2.2 0 0 1-2.2-2.2z" />
+      <path d="M13.2 3.2v5h4.8" />
+    </>
+  ),
+  memory: (
+    <>
+      <path d="M12 4.8a3.6 3.6 0 0 0-3.6 3.6v6.9a3.6 3.6 0 0 0 7.2 0V8.4A3.6 3.6 0 0 0 12 4.8z" />
+      <path d="M8.4 10.2H5.7M15.6 10.2h2.7M8.4 13.6H5.7M15.6 13.6h2.7" />
     </>
   ),
 
-  /* ── Provider marks ──────────────────────────────────────────────────── */
-  google: (
-    <>
-      <path d="M16.4 10.2c0-.5 0-1-.1-1.5H10v3h3.6a3.1 3.1 0 0 1-1.4 2v1.9h2.3a6.6 6.6 0 0 0 1.9-5.4z" />
-      <path d="M10 17a6.5 6.5 0 0 0 4.5-1.6l-2.3-1.8a4 4 0 0 1-6-2.1H3.8v1.9A7 7 0 0 0 10 17z" />
-      <path d="M6.2 11.5a4.1 4.1 0 0 1 0-2.6V7H3.8a7 7 0 0 0 0 6.3z" />
-      <path d="M10 6a3.8 3.8 0 0 1 2.7 1l2-2A6.7 6.7 0 0 0 3.8 7l2.4 1.9A4 4 0 0 1 10 6z" />
-    </>
-  ),
+  /* ── Provider marks (monochrome fallbacks) ───────────────────────────── */
+  google: <circle cx="12" cy="12" r="8" />,
   microsoft: (
     <>
-      <rect x="3.6" y="3.6" width="6" height="6" />
-      <rect x="10.4" y="3.6" width="6" height="6" />
-      <rect x="3.6" y="10.4" width="6" height="6" />
-      <rect x="10.4" y="10.4" width="6" height="6" />
+      <rect x="4.4" y="4.4" width="6.6" height="6.6" />
+      <rect x="13" y="4.4" width="6.6" height="6.6" />
+      <rect x="4.4" y="13" width="6.6" height="6.6" />
+      <rect x="13" y="13" width="6.6" height="6.6" />
     </>
   ),
   slack: (
     <>
-      <rect x="8.6" y="2.8" width="2.8" height="7.4" rx="1.4" />
-      <rect x="8.6" y="9.8" width="2.8" height="7.4" rx="1.4" />
-      <rect x="2.8" y="8.6" width="7.4" height="2.8" rx="1.4" />
-      <rect x="9.8" y="8.6" width="7.4" height="2.8" rx="1.4" />
+      <rect x="10.4" y="3.4" width="3.2" height="8.8" rx="1.6" />
+      <rect x="10.4" y="11.8" width="3.2" height="8.8" rx="1.6" />
+      <rect x="3.4" y="10.4" width="8.8" height="3.2" rx="1.6" />
+      <rect x="11.8" y="10.4" width="8.8" height="3.2" rx="1.6" />
     </>
   ),
   linkedin: (
     <>
-      <rect x="3.2" y="3.2" width="13.6" height="13.6" rx="2.6" />
-      <path d="M6.6 8.8v4.6M6.6 6.6v.1" />
-      <path d="M9.8 13.4V8.8M9.8 10.8a2 2 0 0 1 3.9 0v2.6" />
+      <rect x="3.8" y="3.8" width="16.4" height="16.4" rx="3" />
+      <path d="M7.9 10.5v5.6M7.9 7.9v.1" />
+      <path d="M11.8 16.1v-5.6M11.8 12.9a2.4 2.4 0 0 1 4.7 0v3.2" />
     </>
   ),
   notion: (
     <>
-      <rect x="3.4" y="3.4" width="13.2" height="13.2" rx="2.4" />
-      <path d="M7 13.4V6.9l6 6.1V6.6" />
+      <rect x="4" y="4" width="16" height="16" rx="2.8" />
+      <path d="M8.4 16.1V8.3l7.2 7.4V7.9" />
     </>
   ),
   linear: (
     <>
-      <path d="M3.4 11.6 8.4 16.6" />
-      <path d="M3.2 8.2 11.8 16.8" />
-      <path d="M3.8 5.2 14.8 16.2" />
-      <path d="M6.2 3.6 16.4 13.8" />
+      <path d="M4 14 10 20" />
+      <path d="M3.8 9.8 14.2 20.2" />
+      <path d="M4.6 6.2 17.8 19.4" />
+      <path d="M7.4 4.3 19.7 16.6" />
     </>
   ),
   github: (
     <>
-      <path d="M12.6 16.6v-2.4a2.1 2.1 0 0 0-.6-1.6c2-.2 4-.9 4-4.3a3.3 3.3 0 0 0-.9-2.3 3 3 0 0 0-.1-2.3s-.8-.2-2.5.9a8.5 8.5 0 0 0-4.4 0C6.4 3.5 5.6 3.7 5.6 3.7a3 3 0 0 0-.1 2.3 3.3 3.3 0 0 0-.9 2.3c0 3.4 2 4.1 4 4.3a2.1 2.1 0 0 0-.6 1.6v2.4" />
-      <path d="M8 15.2c-2.4.8-2.4-1.4-3.4-1.6" />
+      <path d="M15.1 20v-2.9a2.5 2.5 0 0 0-.7-1.9c2.4-.3 4.8-1.1 4.8-5.2a4 4 0 0 0-1.1-2.8 3.7 3.7 0 0 0-.1-2.8s-1-.2-3 1.1a10.2 10.2 0 0 0-5.3 0C7.7 4.2 6.7 4.4 6.7 4.4a3.7 3.7 0 0 0-.1 2.8 4 4 0 0 0-1.1 2.8c0 4.1 2.4 4.9 4.8 5.2a2.5 2.5 0 0 0-.7 1.9V20" />
+      <path d="M9.6 18.2c-2.9 1-2.9-1.7-4.1-1.9" />
     </>
   ),
   todoist: (
     <>
-      <rect x="3.4" y="3.4" width="13.2" height="13.2" rx="3" />
-      <path d="M6.6 7.6l3 1.8M6.6 11.2l3 1.8M13.4 6.4l-3.8 2.2M13.4 10l-3.8 2.2" />
+      <rect x="4" y="4" width="16" height="16" rx="3.6" />
+      <path d="M7.9 9.1l3.6 2.2M7.9 13.4l3.6 2.2M16.1 7.7l-4.6 2.6M16.1 12l-4.6 2.6" />
     </>
   ),
-
-  /* ── Brand ───────────────────────────────────────────────────────────── */
-  // The Stobs mark: a steady core inside an open orbit.
-  logo: (
-    <>
-      <path d="M16.2 6.4A7 7 0 1 0 17 10" />
-      <circle cx="10" cy="10" r="2.6" fill="currentColor" stroke="none" />
-    </>
-  )
+  apple: <circle cx="12" cy="12" r="8" />
 }
 
 export type IconName = keyof typeof PATHS
 
 export const Icon = ({
   name,
-  size = 16,
-  strokeWidth = 1.6
+  size = 17,
+  strokeWidth = 1.15
 }: {
   name: IconName
   size?: number
@@ -271,11 +273,12 @@ export const Icon = ({
   <svg
     width={size}
     height={size}
-    viewBox="0 0 20 20"
+    viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
     strokeWidth={strokeWidth}
     strokeLinecap="round"
+    strokeLinejoin="round"
     aria-hidden="true"
   >
     {PATHS[name]}

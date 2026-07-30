@@ -156,7 +156,7 @@ export const Brain = (): ReactNode => {
           ) : null}
 
           {state.brain.length === 0 ? (
-            <Empty icon="memory" title="The brain is empty.">
+            <Empty icon="brain" title="The brain is empty.">
               Add what you would otherwise explain over and over: what you sell, who buys it, what
               you tried that failed, your numbers, your positioning. Import a doc or a deck and it
               becomes context for everything.

@@ -76,7 +76,7 @@ const Setup = ({
         <>
           <Field
             label="Redirect URI"
-            hint="Paste this into your OAuth app exactly. Stobs listens here during the handshake."
+            hint="Paste this into your OAuth app exactly. Grove listens here during the handshake."
           >
             <div className="row">
               <input type="text" readOnly value={redirectUri} className="grow" />
@@ -130,7 +130,7 @@ const Setup = ({
       ) : (
         <Field
           label={spec.tokenLabel ?? 'Token'}
-          hint="Stored encrypted in your macOS Keychain. Stobs verifies it before saving."
+          hint="Stored encrypted in your macOS Keychain. Grove verifies it before saving."
         >
           <input
             type="password"
@@ -171,7 +171,7 @@ export const Connections = (): ReactNode => {
       <div className="scroll">
         <div className="body">
           <div className="notice info">
-            Stobs connects with your own OAuth apps and tokens. Nothing routes through our servers —
+            Grove connects with your own OAuth apps and tokens. Nothing routes through our servers —
             credentials live encrypted in your macOS Keychain and go only to the provider.
           </div>
 

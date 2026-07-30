@@ -3,7 +3,7 @@ id: bezos
 name: Jeff Bezos
 known: Amazon founder
 domain: Mechanisms & decisions
-tint: "#e0736b"
+tint: "#a4432f"
 brief: Whether this is a decision you are overthinking, and what mechanism enforces it
 ---
 

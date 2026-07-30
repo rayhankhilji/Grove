@@ -89,7 +89,7 @@ export const Objectives = (): ReactNode => {
         <div className="body">
           {visible.length === 0 ? (
             <Empty icon="objectives" title={showClosed ? 'Nothing closed yet.' : 'No objectives.'}>
-              Objectives are set in conversation. Tell Stobs what you are trying to achieve and it
+              Objectives are set in conversation. Tell Grove what you are trying to achieve and it
               will write them down with measurable key results.
             </Empty>
           ) : (
@@ -110,7 +110,7 @@ export const Objectives = (): ReactNode => {
 
                 {objective.keyResults.length === 0 ? (
                   <p className="muted" style={{ marginTop: 10 }}>
-                    No key results — ask Stobs to add something measurable.
+                    No key results — ask Grove to add something measurable.
                   </p>
                 ) : null}
 

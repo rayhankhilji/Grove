@@ -61,7 +61,7 @@ const Card = ({ decision }: { decision: Decision }): ReactNode => {
 
       {decision.recommendation ? (
         <>
-          <div className="section-title">Stobs recommends</div>
+          <div className="section-title">Grove recommends</div>
           <p style={{ fontSize: 13 }}>{decision.recommendation}</p>
         </>
       ) : null}
@@ -129,7 +129,7 @@ export const Decisions = (): ReactNode => {
         <div className="body">
           {state.decisions.length === 0 ? (
             <Empty icon="decisions" title="Nothing on the table.">
-              When you bring Stobs something consequential it will lay out the real options and make
+              When you bring Grove something consequential it will lay out the real options and make
               a call. Those land here so you can come back to the reasoning.
             </Empty>
           ) : null}

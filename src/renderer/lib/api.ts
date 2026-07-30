@@ -1,9 +1,9 @@
-import type { StobsApi } from '../../preload'
+import type { GroveApi } from '../../preload'
 
 declare global {
   interface Window {
-    stobs: StobsApi
+    grove: GroveApi
   }
 }
 
-export const api = window.stobs
+export const api = window.grove

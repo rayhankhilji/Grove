@@ -3,7 +3,7 @@ id: naval
 name: Naval Ravikant
 known: AngelList co-founder, investor
 domain: Leverage & judgement
-tint: "#b48ce0"
+tint: "#6b5b7b"
 brief: Whether you own the leverage, or are renting it
 ---
 

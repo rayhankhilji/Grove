@@ -3,7 +3,7 @@ id: graham
 name: Paul Graham
 known: Y Combinator co-founder, essayist
 domain: Early stage
-tint: "#5cc08a"
+tint: "#3f6f4f"
 brief: The truth about whether anyone wants this yet
 ---
 

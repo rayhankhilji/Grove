@@ -3,7 +3,7 @@ id: collison
 name: Patrick Collison
 known: Stripe co-founder
 domain: Craft & rigour
-tint: "#7f8ff5"
+tint: "#5a5f8a"
 brief: Whether the details hold up under someone actually using it
 ---
 

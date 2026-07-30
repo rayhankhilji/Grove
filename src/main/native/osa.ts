@@ -20,7 +20,7 @@ export const osa = <T>(script: string, timeout = 25_000): Promise<T> =>
           if (message.includes('-1743') || message.toLowerCase().includes('not authorised') || message.toLowerCase().includes('not authorized')) {
             reject(
               new Error(
-                'macOS blocked this. Allow Stobs under System Settings → Privacy & Security → Automation, then try again.'
+                'macOS blocked this. Allow Grove under System Settings → Privacy & Security → Automation, then try again.'
               )
             )
             return

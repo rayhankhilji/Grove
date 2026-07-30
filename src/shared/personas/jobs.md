@@ -3,7 +3,7 @@ id: jobs
 name: Steve Jobs
 known: Apple co-founder
 domain: Product & taste
-tint: "#4ec5b6"
+tint: "#2f5d43"
 brief: Whether this is worth making at all, and what to delete
 ---
 

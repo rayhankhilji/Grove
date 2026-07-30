@@ -148,6 +148,6 @@ const api = {
   }
 }
 
-export type StobsApi = typeof api
+export type GroveApi = typeof api
 
-contextBridge.exposeInMainWorld('stobs', api)
+contextBridge.exposeInMainWorld('grove', api)

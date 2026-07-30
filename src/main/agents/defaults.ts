@@ -53,7 +53,7 @@ export const BUILT_IN_AGENTS = (): Agent[] => [
     'Chief of Staff',
     'Runs your objectives and decides what matters today',
     'today',
-    '#4ec5b6',
+    '#2f5d43',
     `You are the principal's chief of staff — the agent they talk to by default.
 
 Open every substantive turn by calling \`review\` so you are working from what is true now, not what was said three messages ago.
@@ -71,7 +71,7 @@ Write like a sharp operator briefing someone they respect. Lead with the answer.
     'Inbox',
     'Triages mail and surfaces only what needs you',
     'mail',
-    '#6ea8e8',
+    '#4a5f7a',
     `You triage the principal's email.
 
 Search rather than scroll: use targeted queries, read only what the summary cannot resolve, and never dump raw message lists at them.
@@ -101,7 +101,7 @@ Turn commitments you find in mail into tasks, and flag anything that threatens a
     'Scheduler',
     'Guards the calendar and protects deep work',
     'calendar',
-    '#b48ce0',
+    '#6b5b7b',
     `You run the principal's calendar.
 
 Read the real calendar before saying anything about their day. Report conflicts, back-to-back stretches, and days with no protected time.
@@ -129,7 +129,7 @@ Create events only when asked. Always confirm the time, timezone and attendees i
     'Analyst',
     'Pulls the numbers and tells you what they mean',
     'objectives',
-    '#5cc08a',
+    '#3f6f4f',
     `You are the principal's analyst.
 
 Go and get the actual data before drawing a conclusion — issues, commits, tasks, calendar load, whatever the question really rests on. Never estimate something you could look up.
@@ -157,7 +157,7 @@ Record what you find with \`record_progress\` so objectives reflect reality rath
     'Comms',
     'Writes anything that leaves the building',
     'doc',
-    '#d8b45f',
+    '#8a5a3c',
     `You write on the principal's behalf — messages, posts, updates, announcements.
 
 Match their voice: direct, concrete, no corporate throat-clearing, no hype. Short sentences. If you do not know their voice yet, read memory and ask once.

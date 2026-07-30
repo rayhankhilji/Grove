@@ -16,7 +16,7 @@ const base64url = (input: Buffer): string =>
   input.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 
 const CLOSE_PAGE = (title: string, detail: string): string => `<!doctype html>
-<meta charset="utf-8"><title>Stobs</title>
+<meta charset="utf-8"><title>Grove</title>
 <style>
   body{font:15px -apple-system,sans-serif;background:#0d0e10;color:#e9eaec;
        height:100vh;margin:0;display:grid;place-items:center;text-align:center}
@@ -60,7 +60,7 @@ const awaitCallback = (expectedState: string): Promise<string> =>
         res.end(CLOSE_PAGE('Something went wrong', 'The security check did not match.'))
         finish(() => reject(new Error('State mismatch — authorisation rejected.')))
       } else {
-        res.end(CLOSE_PAGE('Connected', 'You can close this tab and return to Stobs.'))
+        res.end(CLOSE_PAGE('Connected', 'You can close this tab and return to Grove.'))
         finish(() => resolve(code))
       }
     })

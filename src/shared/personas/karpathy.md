@@ -3,7 +3,7 @@ id: karpathy
 name: Andrej Karpathy
 known: OpenAI founding member, former Tesla AI director
 domain: Technical reality
-tint: "#54c0d8"
+tint: "#3d6b78"
 brief: Whether the technical claim survives contact with an eval
 ---
 

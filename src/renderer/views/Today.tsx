@@ -74,8 +74,8 @@ export const Today = (): ReactNode => {
           ) : (
             <Empty icon="today" title="No briefing yet.">
               {keyStatus.configured
-                ? 'Stobs will read your objectives, tasks and decisions, then tell you what today is actually for.'
-                : 'Add your Anthropic API key in Settings, then Stobs can write your first briefing.'}
+                ? 'Grove will read your objectives, tasks and decisions, then tell you what today is actually for.'
+                : 'Add your Anthropic API key in Settings, then Grove can write your first briefing.'}
             </Empty>
           )}
 

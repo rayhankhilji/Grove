@@ -56,7 +56,7 @@ export const Settings = (): ReactNode => {
               </div>
             ) : (
               <p className="muted">
-                Stobs runs on your own Anthropic key. It is stored encrypted on this Mac and sent
+                Grove runs on your own Anthropic key. It is stored encrypted on this Mac and sent
                 only to Anthropic — never to us.
               </p>
             )}
@@ -149,7 +149,7 @@ export const Settings = (): ReactNode => {
               <div>
                 <strong style={{ fontSize: 13 }}>Menu bar</strong>
                 <p className="muted">
-                  Keep Stobs in the menu bar with live run status. ⌥Space summons it from anywhere.
+                  Keep Grove in the menu bar with live run status. ⌥Space summons it from anywhere.
                 </p>
               </div>
               <Switch

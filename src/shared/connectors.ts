@@ -66,7 +66,7 @@ export const CONNECTORS: ConnectorSpec[] = [
     name: 'Slack',
     category: 'Messaging',
     auth: 'oauth',
-    note: 'Create a Slack app, add the user scopes below, and set the redirect URL to the loopback address Stobs shows during connect.',
+    note: 'Create a Slack app, add the user scopes below, and set the redirect URL to the loopback address Grove shows during connect.',
     setupUrl: 'https://api.slack.com/apps',
     authUrl: 'https://slack.com/oauth/v2/authorize',
     tokenUrl: 'https://slack.com/api/oauth.v2.access',
@@ -99,7 +99,7 @@ export const CONNECTORS: ConnectorSpec[] = [
     name: 'Notion',
     category: 'Work',
     auth: 'token',
-    note: 'Create an internal integration and share the pages you want Stobs to reach with it.',
+    note: 'Create an internal integration and share the pages you want Grove to reach with it.',
     setupUrl: 'https://www.notion.so/my-integrations',
     tokenLabel: 'Internal integration secret',
     actions: [

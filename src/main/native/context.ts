@@ -5,7 +5,7 @@ import { store, today } from '../store'
 /**
  * Active-context sampling.
  *
- * Stobs records which application is frontmost and for how long — never a
+ * Grove records which application is frontmost and for how long — never a
  * screenshot, never window contents beyond the title the app already puts in
  * its own title bar. That is enough to tell the principal where their hours
  * actually went, which is the one thing a calendar cannot.

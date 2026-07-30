@@ -26,7 +26,7 @@ const emptyState = (): AppState => ({
     model: DEFAULT_MODEL,
     effort: 'high',
     showThinking: true,
-    theme: 'dark',
+    theme: 'light',
     automationsEnabled: true,
     attentionEnabled: true,
     menuBarEnabled: true,
@@ -49,7 +49,7 @@ class Store {
   init(): void {
     const dir = app.getPath('userData')
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-    this.file = join(dir, 'stobs.json')
+    this.file = join(dir, 'grove.json')
     this.state = this.load()
   }
 
