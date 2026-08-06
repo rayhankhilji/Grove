@@ -7,7 +7,18 @@ import { Icon } from '../components/Icon'
 import { BrandMark } from '../components/Brand'
 import { Field, Sheet } from '../components/ui'
 
-const CATEGORIES = ['Email', 'Calendar', 'Messaging', 'Work', 'Dev', 'Social'] as const
+const CATEGORIES = [
+  'Email',
+  'Calendar',
+  'Messaging',
+  'Work',
+  'Files',
+  'Money',
+  'Customers',
+  'Dev',
+  'Social',
+  'Research'
+] as const
 
 const Setup = ({
   spec,
@@ -169,7 +180,7 @@ export const Connections = (): ReactNode => {
       </div>
 
       <div className="scroll">
-        <div className="body">
+        <div className="body wide">
           <div className="notice info">
             Grove connects with your own OAuth apps and tokens. Nothing routes through our servers —
             credentials live encrypted in your macOS Keychain and go only to the provider.
@@ -177,7 +188,7 @@ export const Connections = (): ReactNode => {
 
           <div className="section-title">On this Mac</div>
           <div className="stack tight">
-            <div className="conn">
+            <div className="conn" data-live="true">
               <div className="logo">
                 <BrandMark id="apple" size={20} />
               </div>
@@ -233,15 +244,15 @@ export const Connections = (): ReactNode => {
             return (
               <div key={category}>
                 <div className="section-title">{category}</div>
-                <div className="stack tight">
+                <div className="conn-grid">
                   {group.map((spec) => {
                     const connection = state.connections.find((entry) => entry.providerId === spec.id)
                     const live = connection?.status === 'connected'
 
                     return (
-                      <div className="conn" key={spec.id}>
+                      <div className="conn" key={spec.id} data-live={live}>
                         <div className="logo">
-                          <BrandMark id={spec.id} size={20} />
+                          <BrandMark id={spec.id} name={spec.name} size={20} />
                         </div>
 
                         <div className="grow">

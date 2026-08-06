@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { useStore } from '../lib/state'
 import { Icon } from '../components/Icon'
 import { Empty, Field, Prose, Sheet, relative } from '../components/ui'
+import { Shader } from '../components/Shader'
 
 /** Initials tile — the personas have no portraits, and shouldn't. */
 const Seat = ({
@@ -28,14 +29,9 @@ const Seat = ({
     <div className="seat" data-speaking={speaking} style={{ width: size }}>
       <div
         className="seat-tile"
-        style={{
-          height: size * 0.72,
-          background: `linear-gradient(150deg, ${persona.tint}26, ${persona.tint}0d)`,
-          borderColor: speaking ? persona.tint : 'var(--line)',
-          color: persona.tint
-        }}
+        style={{ height: size * 0.72 }}
       >
-        <span style={{ fontSize: size * 0.26, fontWeight: 620, letterSpacing: '-0.02em' }}>
+        <span className="initials" style={{ fontSize: size * 0.24 }}>
           {initials}
         </span>
         {speaking ? (
@@ -216,7 +212,6 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
             data-on={picked.includes(persona.id)}
             onClick={() => toggle(persona.id)}
           >
-            <span className="dot" style={{ background: persona.tint }} />
             <span className="grow">
               <strong>{persona.name}</strong>
               <span className="meta">{persona.brief || persona.known}</span>
@@ -350,6 +345,7 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
       </div>
 
       <div className="stage">
+        <Shader intensity={0.07} />
         {meeting.personaIds.map((personaId) => (
           <Seat key={personaId} personaId={personaId} speaking={speaking === personaId} />
         ))}
@@ -366,10 +362,7 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
             ) : (
               <div className="turn-agent" key={turn.id}>
                 <div className="answer-head">
-                  <span
-                    className="dot"
-                    style={{ background: persona?.tint, width: 8, height: 8 }}
-                  />
+                  <span className="dot" style={{ width: 6, height: 6 }} />
                   <span className="name">{turn.name}</span>
                   <span className="model">{persona?.domain}</span>
                   {turn.audio ? (
@@ -396,10 +389,7 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
           {speaking && liveTurnId ? (
             <div className="turn-agent">
               <div className="answer-head">
-                <span
-                  className="dot run"
-                  style={{ background: personaFor(speaking)?.tint, width: 8, height: 8 }}
-                />
+                <span className="dot run" style={{ width: 6, height: 6 }} />
                 <span className="name">{personaFor(speaking)?.name}</span>
               </div>
               <div className="prose" style={{ fontSize: 13.5 }}>

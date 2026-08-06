@@ -42,6 +42,8 @@ import { extractText, SUPPORTED_EXTENSIONS } from './native/files'
 import { addEntry, removeEntry, updateEntry } from './brain'
 import { FISH_KEY_ID, listVoices, type FishVoice } from './voice/fish'
 import { llmKeyId } from './llm'
+import { cliStatus, forgetCommands, type CliStatus } from './llm/cli'
+import { PROVIDERS, SUBSCRIBABLE } from '@shared/providers'
 import { currentFocus } from './native/context'
 import { vault } from './vault'
 import { id, now, store } from './store'
@@ -161,11 +163,29 @@ export const registerIpc = (): void => {
   handle<[], string[]>('provider:configured', () => {
     const ready: string[] = []
     if (vault.getKey()) ready.push('anthropic')
-    for (const provider of ['deepseek', 'groq', 'openrouter', 'google', 'openai', 'ollama']) {
-      if (vault.provider(llmKeyId(provider)).accessToken) ready.push(provider)
+    for (const provider of PROVIDERS) {
+      if (provider.id === 'anthropic') continue
+      if (vault.provider(llmKeyId(provider.id)).accessToken) ready.push(provider.id)
     }
     return ready
   })
+
+  /**
+   * Which plan-backed CLIs are installed and signed in. Re-checked on demand
+   * rather than cached at boot, so installing one mid-session is picked up.
+   */
+  handle<[], Record<string, CliStatus>>('provider:plans', () => {
+    forgetCommands()
+    const status: Record<string, CliStatus> = {}
+    for (const provider of SUBSCRIBABLE) status[provider.id] = cliStatus(provider.subscription!)
+    return status
+  })
+
+  handle<[string, 'api' | 'subscription'], AppState>('provider:auth', (providerId, mode) =>
+    store.update((draft) => {
+      draft.settings.providerAuth = { ...draft.settings.providerAuth, [providerId]: mode }
+    })
+  )
 
   handle<[string], boolean>('voice:key', (key) => {
     vault.saveProvider(FISH_KEY_ID, { accessToken: key.trim() || undefined })

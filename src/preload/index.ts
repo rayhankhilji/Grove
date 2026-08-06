@@ -23,6 +23,13 @@ export interface FishVoice {
   visibility: string
 }
 
+/** Whether a plan-backed CLI is present on this Mac and already signed in. */
+export interface PlanStatus {
+  installed: boolean
+  path: string | null
+  signedIn: boolean
+}
+
 export interface BoardMeta {
   kinds: { id: string; label: string }[]
   benches: { id: string; label: string; kind: string; personaIds: string[] }[]
@@ -96,6 +103,9 @@ const api = {
   setProviderKey: (providerId: string, key: string): Promise<AppState> =>
     ipcRenderer.invoke('provider:key', providerId, key),
   configuredProviders: (): Promise<string[]> => ipcRenderer.invoke('provider:configured'),
+  providerPlans: (): Promise<Record<string, PlanStatus>> => ipcRenderer.invoke('provider:plans'),
+  setProviderAuth: (providerId: string, mode: 'api' | 'subscription'): Promise<AppState> =>
+    ipcRenderer.invoke('provider:auth', providerId, mode),
   setVoiceKey: (key: string): Promise<boolean> => ipcRenderer.invoke('voice:key', key),
   hasVoiceKey: (): Promise<boolean> => ipcRenderer.invoke('voice:has'),
   listVoices: (query: string): Promise<FishVoice[]> => ipcRenderer.invoke('voice:list', query),

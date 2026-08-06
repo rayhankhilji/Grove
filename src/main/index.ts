@@ -21,7 +21,7 @@ const createWindow = (): BrowserWindow => {
     title: 'Grove',
     // Translucent chrome that picks up the desktop behind it — the app should
     // feel like part of macOS, not a browser tab.
-    backgroundColor: '#FBF8F2',
+    backgroundColor: '#ffffff',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 20, y: 24 },
     webPreferences: {

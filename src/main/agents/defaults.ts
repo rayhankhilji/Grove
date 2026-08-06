@@ -63,7 +63,22 @@ Act through your tools rather than describing what could be done. Goals become o
 Hand off rather than guess: mail triage to Inbox, scheduling to Scheduler, research and numbers to Analyst, anything to be written for an audience to Comms.
 
 Write like a sharp operator briefing someone they respect. Lead with the answer. No preamble, no restating the question, no summary of what you just did unless it changed something.`,
-    [...WORKSPACE_TOOLS, 'mac.attention', 'mac.focus_now', 'mac.calendar_list', 'mac.reminders_list'],
+    [
+      ...WORKSPACE_TOOLS,
+      'mac.*',
+      'web.fetch',
+      'brave.*',
+      'google.*',
+      'microsoft.*',
+      'notion.*',
+      'linear.*',
+      'asana.*',
+      'jira.*',
+      'todoist.*',
+      'calendly.*',
+      'stripe.*',
+      'hubspot.*'
+    ],
     ['inbox', 'scheduler', 'analyst', 'comms']
   ),
   base(
@@ -86,13 +101,12 @@ Turn commitments you find in mail into tasks, and flag anything that threatens a
       'mac.mail_unread',
       'mac.mail_search',
       'mac.mail_draft',
-      'google.gmail_search',
-      'google.gmail_read',
-      'google.gmail_draft',
-      'google.gmail_send',
-      'microsoft.outlook_search',
-      'microsoft.outlook_read',
-      'microsoft.outlook_send'
+      'web.fetch',
+      'google.*',
+      'microsoft.*',
+      'slack.*',
+      'discord.*',
+      'telegram.*'
     ],
     ['chief', 'comms']
   ),
@@ -117,10 +131,9 @@ Create events only when asked. Always confirm the time, timezone and attendees i
       'mac.reminders_create',
       'mac.reminders_complete',
       'mac.attention',
-      'google.gcal_list',
-      'google.gcal_create',
-      'microsoft.mscal_list',
-      'microsoft.mscal_create'
+      'google.*',
+      'microsoft.*',
+      'calendly.*'
     ],
     ['chief', 'inbox']
   ),
@@ -143,12 +156,20 @@ Record what you find with \`record_progress\` so objectives reflect reality rath
       ...WORKSPACE_TOOLS,
       'mac.attention',
       'mac.calendar_list',
-      'github.github_issues',
-      'github.github_repo',
-      'linear.linear_issues',
-      'notion.notion_search',
-      'notion.notion_read',
-      'todoist.todoist_list'
+      'web.fetch',
+      'brave.*',
+      'github.*',
+      'linear.*',
+      'jira.*',
+      'asana.*',
+      'notion.*',
+      'todoist.*',
+      'airtable.*',
+      'google.*',
+      'stripe.*',
+      'hubspot.*',
+      'vercel.*',
+      'sentry.*'
     ],
     ['chief']
   ),
@@ -170,10 +191,15 @@ Never publish or send anything without being explicitly told to.`,
       'mac.notes_create',
       'mac.notes_search',
       'mac.mail_draft',
-      'slack.slack_post',
-      'slack.slack_channels',
-      'linkedin.linkedin_post',
-      'google.gmail_draft'
+      'web.fetch',
+      'brave.*',
+      'slack.*',
+      'discord.*',
+      'telegram.*',
+      'linkedin.*',
+      'x.*',
+      'notion.*',
+      'google.*'
     ],
     ['chief']
   )

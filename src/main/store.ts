@@ -31,6 +31,7 @@ const emptyState = (): AppState => ({
     attentionEnabled: true,
     menuBarEnabled: true,
     boardroomModel: WORKER_MODEL,
+    providerAuth: {},
     voiceEnabled: false,
     personaVoices: {}
   }
@@ -68,9 +69,20 @@ class Store {
 
       // Built-in agents ship with the app, so re-seed any the user has not
       // customised rather than leaving an older install without them.
-      const known = new Set(merged.agents.map((agent) => agent.id))
+      //
+      // An untouched built-in still carries its shipped timestamp, which is how
+      // we tell "never edited" from "deliberately configured". Those get their
+      // tool grants and handoffs refreshed, so a release that adds connectors
+      // reaches the standing team instead of stranding it on an old allowlist.
+      const known = new Map(merged.agents.map((agent) => [agent.id, agent]))
       for (const builtIn of BUILT_IN_AGENTS()) {
-        if (!known.has(builtIn.id)) merged.agents.push(builtIn)
+        const existing = known.get(builtIn.id)
+        if (!existing) merged.agents.push(builtIn)
+        else if (existing.builtIn && existing.updatedAt === builtIn.updatedAt) {
+          existing.toolIds = builtIn.toolIds
+          existing.handoffIds = builtIn.handoffIds
+          existing.instructions = builtIn.instructions
+        }
       }
       return merged
     } catch {

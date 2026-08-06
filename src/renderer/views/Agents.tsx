@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Agent, Run } from '@shared/types'
 import { MODELS } from '@shared/models'
-import { CONNECTORS, connectorToolId } from '@shared/connectors'
+import { CONNECTORS, connectorToolId, grantCovers, providerGrant } from '@shared/connectors'
 import { api } from '../lib/api'
 import { useStore } from '../lib/state'
+import { BrandMark } from '../components/Brand'
 import { Icon, type IconName } from '../components/Icon'
 import { Avatar, Empty, Field, LiveInput, Sheet, relative } from '../components/ui'
 
@@ -23,6 +24,22 @@ const WORKSPACE_TOOLS: { id: string; label: string }[] = [
   { id: 'remember', label: 'Commit to memory' },
   { id: 'update_profile', label: 'Update the profile' }
 ]
+
+/**
+ * How many connector actions a set of grants really reaches. A wildcard reads
+ * as one entry but may cover a dozen actions, so counting the raw array would
+ * understate what an agent can do.
+ */
+const reachOf = (toolIds: string[]): number => {
+  const actions = CONNECTORS.flatMap((connector) =>
+    connector.actions.map((action) => connectorToolId(connector.id, action.id))
+  )
+  const connectorReach = actions.filter((toolId) =>
+    toolIds.some((grant) => grantCovers(grant, toolId))
+  ).length
+  const direct = toolIds.filter((grant) => !grant.includes('*')).length
+  return connectorReach + direct - toolIds.filter((grant) => actions.includes(grant)).length
+}
 
 const STATUS_TONE: Record<Run['status'], string> = {
   queued: '',
@@ -183,33 +200,56 @@ const Editor = ({ agent, onClose }: { agent: Agent; onClose: () => void }): Reac
         </div>
       </div>
 
-      {CONNECTORS.map((connector) => (
-        <div className="field" key={connector.id}>
-          <label>
-            {connector.name}
-            {!connected.has(connector.id) ? (
-              <span className="muted"> · not connected, tools stay inactive</span>
-            ) : null}
-          </label>
-          <div className="wrap-list">
-            {connector.actions.map((action) => {
-              const toolId = connectorToolId(connector.id, action.id)
-              return (
-                <button
-                  key={toolId}
-                  className="tool-pick"
-                  data-on={draft.toolIds.includes(toolId)}
-                  onClick={() => toggleTool(toolId)}
-                >
-                  <Icon name={draft.toolIds.includes(toolId) ? 'check' : 'plus'} size={12} />
-                  {action.label}
-                  {action.write ? <span className="tag warn">write</span> : null}
-                </button>
-              )
-            })}
+      {CONNECTORS.map((connector) => {
+        const whole = providerGrant(connector.id)
+        const grantedWhole = draft.toolIds.includes(whole)
+
+        return (
+          <div className="field" key={connector.id}>
+            <div className="field-head">
+              <BrandMark id={connector.id} name={connector.name} size={16} />
+              <label>{connector.name}</label>
+              {!connected.has(connector.id) ? (
+                <span className="muted">not connected — these stay inactive</span>
+              ) : null}
+            </div>
+            <div className="wrap-list">
+              {/*
+                One switch for the whole app. This is what keeps a newly
+                connected service usable without revisiting every agent: the
+                grant is a wildcard, so any action added later is covered too.
+              */}
+              <button
+                className="tool-pick whole"
+                data-on={grantedWhole}
+                onClick={() => toggleTool(whole)}
+              >
+                <Icon name={grantedWhole ? 'check' : 'plus'} size={12} />
+                Everything in {connector.name}
+              </button>
+
+              {connector.actions.map((action) => {
+                const toolId = connectorToolId(connector.id, action.id)
+                const explicit = draft.toolIds.includes(toolId)
+                return (
+                  <button
+                    key={toolId}
+                    className="tool-pick"
+                    data-on={explicit || grantedWhole}
+                    data-inherited={grantedWhole && !explicit}
+                    disabled={grantedWhole}
+                    onClick={() => toggleTool(toolId)}
+                  >
+                    <Icon name={explicit || grantedWhole ? 'check' : 'plus'} size={12} />
+                    {action.label}
+                    {action.write ? <span className="tag warn">write</span> : null}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
 
       <div className="field">
         <label>Can hand off to</label>
@@ -477,7 +517,7 @@ export const Agents = (): ReactNode => {
 
                   <div className="row" style={{ flexWrap: 'wrap', gap: 5 }}>
                     <span className="tag">{MODELS.find((m) => m.id === agent.model)?.label ?? agent.model}</span>
-                    <span className="tag">{agent.toolIds.length} tools</span>
+                    <span className="tag">{reachOf(agent.toolIds)} tools</span>
                     {agent.handoffIds.length > 0 ? (
                       <span className="tag">
                         <Icon name="handoff" size={11} />

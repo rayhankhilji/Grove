@@ -1,7 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages'
-import { providerOfModel, modelOption } from '@shared/providers'
+import { providerOfModel, modelOption, type ProviderSpec } from '@shared/providers'
 import { streamCompat } from './compat'
+import { runSubscriptionTurn, SubscriptionUnavailable } from './cli'
+import { store } from '../store'
 import { vault } from '../vault'
 
 /** Keys for model providers live under their own namespace in the vault. */
@@ -41,11 +43,38 @@ const anthropicKey = (): string => {
 }
 
 /**
- * One turn against whichever provider owns the model. Claude goes through the
- * official SDK; everything else through the OpenAI-compatible adapter.
+ * Whether a provider is currently being driven by a plan rather than a key.
+ * Only meaningful for providers that offer one — the setting is ignored
+ * elsewhere, so a stale value can never strand a working key.
+ */
+export const onSubscription = (provider: ProviderSpec): boolean =>
+  Boolean(provider.subscription) && store.get().settings.providerAuth[provider.id] === 'subscription'
+
+/**
+ * One turn against whichever provider owns the model. A plan-backed provider
+ * goes out through its CLI; Claude goes through the official SDK; everything
+ * else through the OpenAI-compatible adapter.
  */
 export const runTurn = async (request: TurnRequest): Promise<TurnResult> => {
   const provider = providerOfModel(request.model)
+
+  if (onSubscription(provider)) {
+    const result = await runSubscriptionTurn(provider, {
+      model: request.model,
+      system: request.system,
+      messages: request.messages,
+      tools: request.tools,
+      effort: request.effort,
+      ...(request.onText ? { onText: request.onText } : {}),
+      ...(request.signal ? { signal: request.signal } : {})
+    })
+    return {
+      content: result.content,
+      stopReason: result.stopReason,
+      tokensIn: result.tokensIn,
+      tokensOut: result.tokensOut
+    }
+  }
 
   if (provider.kind === 'anthropic') {
     const client = new Anthropic({ apiKey: anthropicKey(), maxRetries: 2 })
@@ -135,6 +164,7 @@ export const complete = async (
 
 export const describeLlmError = (error: unknown): string => {
   if (error instanceof MissingProviderKey) return error.message
+  if (error instanceof SubscriptionUnavailable) return error.message
   if (error instanceof Anthropic.AuthenticationError)
     return 'That Anthropic key was rejected. Check it in Settings.'
   if (error instanceof Anthropic.PermissionDeniedError)

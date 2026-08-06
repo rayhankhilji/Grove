@@ -239,7 +239,17 @@ export interface ConnectorSpec {
   id: string
   name: string
   /** Grouping in the Connections view. */
-  category: 'Email' | 'Calendar' | 'Messaging' | 'Work' | 'Social' | 'Dev'
+  category:
+    | 'Email'
+    | 'Calendar'
+    | 'Messaging'
+    | 'Work'
+    | 'Files'
+    | 'Money'
+    | 'Customers'
+    | 'Dev'
+    | 'Social'
+    | 'Research'
   auth: AuthKind
   /** Human note about what the provider actually allows. */
   note: string
@@ -360,6 +370,11 @@ export interface Settings {
   menuBarEnabled: boolean
   /** Model used for boardroom seats — deliberately separate from the agents'. */
   boardroomModel: string
+  /**
+   * How each model provider is paid for: a metered API key, or a plan already
+   * bought and signed in through the vendor's CLI. Absent means API key.
+   */
+  providerAuth: Record<string, 'api' | 'subscription'>
   /** Speak boardroom turns aloud through Fish Audio. */
   voiceEnabled: boolean
   /** Fish Audio voice id per persona, chosen by the user. */

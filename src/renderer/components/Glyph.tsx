@@ -1,0 +1,225 @@
+import type { ReactNode } from 'react'
+
+/**
+ * Grove's own icon set.
+ *
+ * Drawn rather than imported, because the parts of the app that carry meaning —
+ * the brain, the boardroom, the attention ledger — have no honest equivalent in
+ * a general-purpose icon library, and reaching for the nearest generic shape is
+ * what makes an interface look assembled instead of designed.
+ *
+ * One system throughout: a 24-unit grid, 1.5 stroke, round caps and joins, and
+ * a single accent element per mark that moves when the row is hovered or
+ * current. All motion lives in CSS against the `data-part` attributes below, so
+ * it can be switched off wholesale for reduced motion.
+ */
+
+const P = ({ d, part }: { d: string; part?: string }): ReactNode => (
+  <path d={d} data-part={part} />
+)
+
+const C = ({ cx, cy, r, part, filled }: { cx: number; cy: number; r: number; part?: string; filled?: boolean }): ReactNode => (
+  <circle cx={cx} cy={cy} r={r} data-part={part} {...(filled ? { fill: 'currentColor', stroke: 'none' } : {})} />
+)
+
+/**
+ * Each mark is a fragment; stroke, fill and sizing come from the wrapper so
+ * every glyph is guaranteed to sit on the same optical weight.
+ */
+const MARKS: Record<string, ReactNode> = {
+  /* Sunrise over a horizon — the day ahead, not a generic sun. */
+  today: (
+    <>
+      <P d="M3 18h18" />
+      <P d="M7.5 18a4.5 4.5 0 0 1 9 0" part="rise" />
+      <P d="M12 5.5v2" part="ray" />
+      <P d="M5.6 8.1l1.4 1.4" part="ray" />
+      <P d="M18.4 8.1l-1.4 1.4" part="ray" />
+    </>
+  ),
+
+  /* Two planes of a conversation, slightly out of register. */
+  chat: (
+    <>
+      <P d="M4 5.5h11a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H8l-4 3z" part="near" />
+      <P d="M9.5 9.5H20a1 1 0 0 1 1 1v4" part="far" />
+    </>
+  ),
+
+  /* A round table with seats — the boardroom, seen from above. */
+  boardroom: (
+    <>
+      <P d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7" />
+      <g data-part="seats">
+        <C cx={12} cy={4} r={1.4} filled />
+        <C cx={19} cy={8} r={1.4} filled />
+        <C cx={19} cy={16} r={1.4} filled />
+        <C cx={12} cy={20} r={1.4} filled />
+        <C cx={5} cy={16} r={1.4} filled />
+        <C cx={5} cy={8} r={1.4} filled />
+      </g>
+    </>
+  ),
+
+  /* A standing team: one lead node, two reporting. */
+  agents: (
+    <>
+      <C cx={12} cy={5.5} r={2.5} part="lead" />
+      <P d="M12 8v3.5M6.5 15v-1.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2V15" />
+      <C cx={6.5} cy={17.5} r={2.5} part="node-a" />
+      <C cx={17.5} cy={17.5} r={2.5} part="node-b" />
+    </>
+  ),
+
+  /* A track with a token travelling it — work moving on its own. */
+  automations: (
+    <>
+      <P d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5" />
+      <P d="M17.5 14.5 20 17l-2.5 2.5" />
+      <C cx={4} cy={7} r={2} />
+      <C cx={4} cy={7} r={1.6} part="token" filled />
+    </>
+  ),
+
+  /* Two links closing on each other. */
+  connections: (
+    <>
+      <P d="M10.5 13.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1" part="link-a" />
+      <P d="M13.5 10.5a3.5 3.5 0 0 0-5 0L6 13a3.5 3.5 0 0 0 5 5l1-1" part="link-b" />
+    </>
+  ),
+
+  /* Contour lines of accumulated knowledge — a map, not a cartoon brain. */
+  brain: (
+    <>
+      <P d="M12 3.5c-3.6 0-6.5 2-6.5 4.6 0 1.3.7 2.4 1.8 3.2-1.1.8-1.8 2-1.8 3.2 0 2.6 2.9 4.6 6.5 4.6s6.5-2 6.5-4.6c0-1.3-.7-2.4-1.8-3.2 1.1-.8 1.8-2 1.8-3.2 0-2.6-2.9-4.6-6.5-4.6Z" part="ring-outer" />
+      <P d="M8.8 8.6c0 1.4 1.4 2.5 3.2 2.5s3.2-1.1 3.2-2.5" part="ring-mid" />
+      <P d="M8.8 15c0-1.4 1.4-2.5 3.2-2.5s3.2 1.1 3.2 2.5" part="ring-mid" />
+      <C cx={12} cy={11.8} r={1} part="core" filled />
+    </>
+  ),
+
+  /* An hour swept out of a dial — where the time actually went. */
+  attention: (
+    <>
+      <P d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5" />
+      <P d="M3.5 12A8.5 8.5 0 0 1 12 3.5V12z" part="sweep" />
+      <P d="M12 12l4 2.5" part="hand" />
+    </>
+  ),
+
+  /* A target with the shot already in flight. */
+  objectives: (
+    <>
+      <C cx={12} cy={12} r={8.5} />
+      <C cx={12} cy={12} r={4.5} part="inner" />
+      <C cx={12} cy={12} r={1.4} part="bull" filled />
+      <P d="M12 12 20.5 3.5M17.5 3.5h3v3" part="arrow" />
+    </>
+  ),
+
+  /* A path that forks — the moment a decision exists. */
+  decisions: (
+    <>
+      <P d="M12 21v-5" />
+      <P d="M12 16c0-3 -1.5-4 -4-5.5" part="branch-a" />
+      <P d="M12 16c0-3 1.5-4 4-5.5" part="branch-b" />
+      <C cx={7.5} cy={8.5} r={2.2} part="end-a" />
+      <C cx={16.5} cy={8.5} r={2.2} part="end-b" />
+    </>
+  ),
+
+  /* Current arriving — the models that power everything else. */
+  providers: (
+    <>
+      <P d="M12 2.5 4.5 7v10L12 21.5 19.5 17V7z" />
+      <P d="M13 7.5 9 12.5h3.4L11 16.5l4-5h-3.4z" part="bolt" />
+    </>
+  ),
+
+  /* Three settings, one out of alignment until you touch it. */
+  settings: (
+    <>
+      <P d="M4 7h16M4 12h16M4 17h16" />
+      <C cx={9} cy={7} r={2.2} part="knob-a" />
+      <C cx={15.5} cy={12} r={2.2} part="knob-b" />
+      <C cx={7.5} cy={17} r={2.2} part="knob-c" />
+    </>
+  ),
+
+  /* A page with its lines — anything written for an audience. */
+  doc: (
+    <>
+      <P d="M6 3.5h8l4 4v13H6z" />
+      <P d="M14 3.5v4h4" />
+      <P d="M9 12h6M9 15.5h4" part="lines" />
+    </>
+  ),
+
+  /* An envelope, drawn as a fold rather than a rectangle with a V in it. */
+  mail: (
+    <>
+      <P d="M3.5 6.5h17v11h-17z" />
+      <P d="M3.5 7 12 13l8.5-6" part="flap" />
+    </>
+  ),
+
+  /* A month, with today marked. */
+  calendar: (
+    <>
+      <P d="M4 6.5h16v14H4z" />
+      <P d="M4 10.5h16" />
+      <P d="M8 3.5v4M16 3.5v4" part="pins" />
+      <C cx={12} cy={15} r={1.6} part="dot" filled />
+    </>
+  ),
+
+  /* Work passing from one hand to another. */
+  handoff: (
+    <>
+      <C cx={5.5} cy={12} r={2.5} />
+      <C cx={18.5} cy={12} r={2.5} />
+      <P d="M8.5 12h7" part="line" />
+      <P d="M13.5 9.5 16 12l-2.5 2.5" part="tip" />
+    </>
+  ),
+
+  /* Stored context, stacked. */
+  memory: (
+    <>
+      <P d="M4 7.5c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z" />
+      <P d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3" part="layer" />
+      <P d="M4 7.5v9c0 1.7 3.6 3 8 3s8-1.3 8-3v-9" />
+    </>
+  )
+}
+
+export type GlyphName = keyof typeof MARKS
+
+export const hasGlyph = (name: string): name is GlyphName => name in MARKS
+
+export const Glyph = ({
+  name,
+  size = 18,
+  strokeWidth = 1.5
+}: {
+  name: GlyphName
+  size?: number
+  strokeWidth?: number
+}): ReactNode => (
+  <svg
+    className="glyph"
+    data-glyph={name}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    {MARKS[name]}
+  </svg>
+)

@@ -1,7 +1,7 @@
 {
   "name": "grove",
   "version": "1.0.0",
-  "description": "Grove \u2014 an AI personal CEO for macOS. Bring your own key.",
+  "description": "Grove — an AI personal CEO for macOS. Bring your own key.",
   "license": "MIT",
   "author": "Grove",
   "main": "./out/main/index.js",
@@ -15,7 +15,8 @@
     "verify": "node scripts/build-verify.mjs && node out/verify.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.115.0"
+    "@anthropic-ai/sdk": "^0.115.0",
+    "lucide-react": "^1.28.0"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",

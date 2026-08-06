@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { render } from '../lib/markdown'
 import { api } from '../lib/api'
 import { Icon, type IconName } from './Icon'
+import { Shader } from './Shader'
 
 export const Ring = ({ value, size = 34 }: { value: number; size?: number }): ReactNode => {
   const stroke = 3
@@ -37,6 +38,7 @@ export const Empty = ({
   children: ReactNode
 }): ReactNode => (
   <div className="empty">
+    <Shader intensity={0.09} />
     <div className="halo">
       <Icon name={icon} size={20} />
     </div>
@@ -226,8 +228,8 @@ export const Avatar = ({
   tint: string
   size?: number
 }): ReactNode => (
-  <div className="avatar" style={{ width: size, height: size, color: tint }}>
-    <Icon name={glyph as IconName} size={Math.round(size * 0.72)} />
+  <div className="avatar" style={{ width: size, height: size }} data-tint={tint}>
+    <Icon name={glyph as IconName} size={Math.round(size * 0.55)} />
   </div>
 )
 

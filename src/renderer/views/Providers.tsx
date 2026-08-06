@@ -1,16 +1,17 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { PROVIDERS } from '@shared/providers'
+import { PROVIDERS, type ProviderSpec } from '@shared/providers'
 import { PERSONAS } from '@shared/personas'
 import { api } from '../lib/api'
-import type { FishVoice } from '../../preload'
+import type { FishVoice, PlanStatus } from '../../preload'
 import { useStore } from '../lib/state'
 import { Icon } from '../components/Icon'
+import { BrandMark } from '../components/Brand'
 import { Field, Sheet, Switch } from '../components/ui'
 
 const price = (input?: number, output?: number): string => {
   if (input === undefined) return ''
   if (input === 0) return 'free · local'
-  return `$${input}/$${output} per Mtok`
+  return `$${input} / $${output}`
 }
 
 const KeyRow = ({
@@ -50,6 +51,68 @@ const KeyRow = ({
       <button className="btn" disabled={busy || !draft.trim()} onClick={() => void save()}>
         Save
       </button>
+    </div>
+  )
+}
+
+/**
+ * The plan half of a provider card.
+ *
+ * A subscription is reached through the vendor's own CLI, which is already
+ * signed in — so the only things Grove can usefully report are whether that
+ * command exists and whether it has a session.
+ */
+const PlanRow = ({
+  spec,
+  status,
+  onRecheck
+}: {
+  spec: ProviderSpec
+  status: PlanStatus | undefined
+  onRecheck: () => void
+}): ReactNode => {
+  const subscription = spec.subscription!
+
+  if (!status?.installed) {
+    return (
+      <div className="stack tight">
+        <p className="muted">
+          Needs the <code>{subscription.command}</code> command, which is not on this Mac yet.
+        </p>
+        <div className="code-row">
+          <code>{subscription.install}</code>
+          <button
+            className="icon-btn"
+            aria-label="Copy install command"
+            onClick={() => void navigator.clipboard.writeText(subscription.install)}
+          >
+            <Icon name="copy" size={13} />
+          </button>
+        </div>
+        <div className="row">
+          <button className="btn" onClick={() => void api.openExternal(subscription.installUrl)}>
+            <Icon name="external" size={13} />
+            Installation guide
+          </button>
+          <button className="btn" onClick={onRecheck}>
+            <Icon name="retry" size={13} />
+            Check again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="stack tight">
+      <p className="muted">{subscription.signIn}</p>
+      <div className="row">
+        <span className="tag mono">{status.path}</span>
+        <button className="btn tiny" onClick={onRecheck}>
+          <Icon name="retry" size={12} />
+          Recheck
+        </button>
+      </div>
     </div>
   )
 }
@@ -178,17 +241,32 @@ const VoicePicker = ({ onClose }: { onClose: () => void }): ReactNode => {
 export const Providers = (): ReactNode => {
   const { state, apply } = useStore()
   const [configured, setConfigured] = useState<string[]>([])
+  const [plans, setPlans] = useState<Record<string, PlanStatus>>({})
   const [hasVoice, setHasVoice] = useState(false)
   const [fishKey, setFishKey] = useState('')
   const [picker, setPicker] = useState(false)
 
   const refresh = (): void => {
     void api.configuredProviders().then(setConfigured)
+    void api.providerPlans().then(setPlans)
     void api.hasVoiceKey().then(setHasVoice)
   }
 
   useEffect(refresh, [])
 
+  const authOf = (spec: ProviderSpec): 'api' | 'subscription' =>
+    state.settings.providerAuth[spec.id] === 'subscription' && spec.subscription
+      ? 'subscription'
+      : 'api'
+
+  /** A provider is usable when the route it is set to actually resolves. */
+  const isReady = (spec: ProviderSpec): boolean => {
+    if (spec.keyless) return true
+    if (authOf(spec) === 'subscription') return Boolean(plans[spec.id]?.installed)
+    return configured.includes(spec.id)
+  }
+
+  const ready = PROVIDERS.filter(isReady).length
   const mapped = Object.keys(state.settings.personaVoices).length
 
   return (
@@ -196,58 +274,94 @@ export const Providers = (): ReactNode => {
       <div className="topbar">
         <h2>Providers</h2>
         <span className="sub">
-          {configured.length} of {PROVIDERS.length} configured
+          {ready} of {PROVIDERS.length} ready
         </span>
       </div>
 
       <div className="scroll">
         <div className="body">
-          <div className="notice info">
-            Agents and boardroom seats can run on any of these. Cheap models make long autonomous
-            work and multi-hour calls affordable; keep Claude for judgement.
-          </div>
+          {PROVIDERS.map((spec) => {
+            const mode = authOf(spec)
+            const live = isReady(spec)
+            const plan = plans[spec.id]
 
-          <div className="section-title">Models</div>
-          {PROVIDERS.map((provider) => {
-            const ready = configured.includes(provider.id) || Boolean(provider.keyless)
             return (
-              <div className="card stack tight" key={provider.id}>
-                <div className="split">
+              <div className="provider" key={spec.id} data-ready={live}>
+                <div className="provider-head">
+                  <div className="logo">
+                    <BrandMark id={spec.id} name={spec.name} size={22} />
+                  </div>
+
                   <div className="grow">
                     <div className="row">
-                      <strong style={{ fontSize: 13.5 }}>{provider.name}</strong>
-                      {ready ? (
+                      <span className="name">{spec.name}</span>
+                      {live ? (
                         <span className="tag ok">
                           <span className="dot ok" />
-                          {provider.keyless ? 'local' : 'ready'}
+                          {spec.keyless
+                            ? 'local'
+                            : mode === 'subscription'
+                              ? plan?.signedIn
+                                ? 'on your plan'
+                                : 'CLI found'
+                              : 'key saved'}
                         </span>
                       ) : null}
                     </div>
-                    <div className="muted">{provider.blurb}</div>
+                    <div className="wrap-list" style={{ marginTop: 6 }}>
+                      {spec.models.map((model) => (
+                        <span className="tag" key={model.id}>
+                          {model.label}
+                          <span className="muted"> {price(model.inPrice, model.outPrice)}</span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  {provider.keyUrl ? (
-                    <button className="btn tiny" onClick={() => void api.openExternal(provider.keyUrl)}>
-                      <Icon name="external" size={12} />
-                      Get key
-                    </button>
+
+                  {spec.subscription ? (
+                    <div className="seg" role="group" aria-label={`${spec.name} credential`}>
+                      <button
+                        data-on={mode === 'api'}
+                        onClick={async () => apply(await api.setProviderAuth(spec.id, 'api'))}
+                      >
+                        API key
+                      </button>
+                      <button
+                        data-on={mode === 'subscription'}
+                        onClick={async () => apply(await api.setProviderAuth(spec.id, 'subscription'))}
+                      >
+                        Plan
+                      </button>
+                    </div>
                   ) : null}
                 </div>
 
-                <div className="wrap-list">
-                  {provider.models.map((model) => (
-                    <span className="tag" key={model.id}>
-                      {model.label} · {price(model.inPrice, model.outPrice)}
-                    </span>
-                  ))}
+                <div className="provider-body">
+                  {spec.keyless ? (
+                    <p className="muted">
+                      Runs against Ollama on this Mac. Start it with <code>ollama serve</code>.
+                    </p>
+                  ) : mode === 'subscription' ? (
+                    <PlanRow spec={spec} status={plan} onRecheck={refresh} />
+                  ) : (
+                    <>
+                      <KeyRow
+                        providerId={spec.id}
+                        configured={configured.includes(spec.id)}
+                        onSaved={refresh}
+                      />
+                      {spec.keyUrl ? (
+                        <button
+                          className="btn ghost tiny"
+                          onClick={() => void api.openExternal(spec.keyUrl)}
+                        >
+                          <Icon name="external" size={12} />
+                          Get a key
+                        </button>
+                      ) : null}
+                    </>
+                  )}
                 </div>
-
-                {!provider.keyless ? (
-                  <KeyRow providerId={provider.id} configured={ready} onSaved={refresh} />
-                ) : (
-                  <p className="muted">
-                    Runs against Ollama on this Mac. Start it with <code>ollama serve</code>.
-                  </p>
-                )}
               </div>
             )
           })}
@@ -256,7 +370,7 @@ export const Providers = (): ReactNode => {
           <div className="card stack">
             <Field
               label="Model for boardroom seats"
-              hint="A long call is many short turns. Cheap, fast models are the right tool here."
+              hint="A long call is many short turns, so this is deliberately separate from the model your agents run on."
             >
               <select
                 value={state.settings.boardroomModel}
@@ -289,54 +403,66 @@ export const Providers = (): ReactNode => {
             </div>
           </div>
 
-          <div className="section-title">Fish Audio</div>
-          <div className="card stack">
-            <div className="split">
+          <div className="section-title">Speech</div>
+          <div className="provider">
+            <div className="provider-head">
+              <div className="logo">
+                <BrandMark id="fish" name="Fish Audio" size={22} />
+              </div>
               <div className="grow">
                 <div className="row">
-                  <strong style={{ fontSize: 13.5 }}>Fish Audio</strong>
+                  <span className="name">Fish Audio</span>
                   {hasVoice ? (
                     <span className="tag ok">
                       <span className="dot ok" />
-                      ready
+                      key saved
                     </span>
                   ) : null}
                   {mapped > 0 ? <span className="tag">{mapped} seats voiced</span> : null}
                 </div>
-                <div className="muted">Text to speech for boardroom calls.</div>
+                <div className="muted" style={{ marginTop: 2 }}>
+                  Text to speech. Separate from your model provider — a plan covers the words, not
+                  the voices.
+                </div>
               </div>
-              <button className="btn tiny" onClick={() => void api.openExternal('https://fish.audio/go-api/')}>
-                <Icon name="external" size={12} />
-                Get key
-              </button>
             </div>
 
-            <div className="row">
-              <input
-                className="grow"
-                type="password"
-                value={fishKey}
-                spellCheck={false}
-                placeholder={hasVoice ? 'Replace key…' : 'Fish Audio API key'}
-                onChange={(event) => setFishKey(event.target.value)}
-              />
-              <button
-                className="btn"
-                disabled={!fishKey.trim()}
-                onClick={async () => {
-                  await api.setVoiceKey(fishKey)
-                  setFishKey('')
-                  refresh()
-                }}
-              >
-                Save
-              </button>
+            <div className="provider-body">
+              <div className="row">
+                <input
+                  className="grow"
+                  type="password"
+                  value={fishKey}
+                  spellCheck={false}
+                  placeholder={hasVoice ? 'Replace key…' : 'Fish Audio API key'}
+                  onChange={(event) => setFishKey(event.target.value)}
+                />
+                <button
+                  className="btn"
+                  disabled={!fishKey.trim()}
+                  onClick={async () => {
+                    await api.setVoiceKey(fishKey)
+                    setFishKey('')
+                    refresh()
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+              <div className="row">
+                <button
+                  className="btn ghost tiny"
+                  onClick={() => void api.openExternal('https://fish.audio/go-api/')}
+                >
+                  <Icon name="external" size={12} />
+                  Get a key
+                </button>
+                <button className="btn tiny" disabled={!hasVoice} onClick={() => setPicker(true)}>
+                  <Icon name="sparkle" size={12} />
+                  Assign voices to seats
+                </button>
+              </div>
             </div>
-
-            <button className="btn" disabled={!hasVoice} onClick={() => setPicker(true)}>
-              <Icon name="sparkle" size={14} />
-              Assign voices to seats
-            </button>
           </div>
         </div>
       </div>

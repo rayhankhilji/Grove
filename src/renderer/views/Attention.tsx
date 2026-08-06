@@ -16,13 +16,8 @@ const RANGES = [
   { label: '30 days', days: 30 }
 ]
 
-/** A palette walk, so the same app keeps the same colour across renders. */
-const TINTS = ['#2f5d43', '#7a6a4f', '#8a5a3c', '#4a5f7a', '#6b5b7b', '#a4432f', '#3f6f4f', '#8d7a3f']
-const tintFor = (name: string): string => {
-  let hash = 0
-  for (const character of name) hash = (hash * 31 + character.charCodeAt(0)) >>> 0
-  return TINTS[hash % TINTS.length]!
-}
+/** Rank is carried by opacity rather than hue — the system has no colour. */
+const shadeFor = (index: number): string => `color-mix(in srgb, var(--fg) ${Math.max(22, 100 - index * 11)}%, transparent)`
 
 export const Attention = (): ReactNode => {
   const { state, apply } = useStore()
@@ -113,7 +108,7 @@ export const Attention = (): ReactNode => {
             <>
               <div className="section-title">Where it went</div>
               <div className="card stack tight">
-                {ranked.slice(0, 14).map(([name, seconds]) => {
+                {ranked.slice(0, 14).map(([name, seconds], index) => {
                   const share = Math.round((seconds / total) * 100)
                   return (
                     <div key={name}>
@@ -124,7 +119,7 @@ export const Attention = (): ReactNode => {
                         </span>
                       </div>
                       <div className="meter" style={{ height: 4 }}>
-                        <i style={{ width: `${share}%`, background: tintFor(name) }} />
+                        <i style={{ width: `${share}%`, background: shadeFor(index) }} />
                       </div>
                     </div>
                   )

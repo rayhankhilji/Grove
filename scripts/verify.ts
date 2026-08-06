@@ -5,9 +5,9 @@
  *
  * Run with `npm run verify`. No API key and no window required.
  */
-import { CONNECTORS, connectorToolId } from '../src/shared/connectors'
+import { CONNECTORS, connectorToolId, grantCovers, providerGrant } from '../src/shared/connectors'
 import { HOUSE_RULES, PERSONAS, personaFor } from '../src/shared/personas'
-import { ALL_MODELS, PROVIDERS, providerOfModel } from '../src/shared/providers'
+import { ALL_MODELS, PROVIDERS, SUBSCRIBABLE, providerOfModel } from '../src/shared/providers'
 import { BENCHES, MEETING_KINDS } from '../src/main/boardroom'
 import { MODELS } from '../src/shared/models'
 import { BUILT_IN_AGENTS } from '../src/main/agents/defaults'
@@ -15,9 +15,12 @@ import { store } from '../src/main/store'
 import { addEntry, context as brainContext, search as brainSearch, updateEntry } from '../src/main/brain'
 import { vault } from '../src/main/vault'
 import { nextRun } from '../src/main/workflows'
+import { parseReply } from '../src/main/llm/cli'
 import {
   ALL_TOOLS,
+  CONNECTOR_SCHEMAS,
   definitionsFor,
+  grantedTools,
   objectiveProgress,
   runTool,
   snapshot,
@@ -111,13 +114,13 @@ const main = async (): Promise<void> => {
     `found ${connectorTools.length}`
   )
 
-  const unschemad = connectorTools.filter(
-    (tool) => Object.keys((tool.schema as { properties?: object }).properties ?? {}).length === 0
-  )
-  const noArgTools = ['slack.slack_channels', 'linkedin.linkedin_me', 'todoist.todoist_list', 'microsoft.mscal_list']
+  // An action that genuinely takes no arguments is fine; an action nobody wrote
+  // a schema for at all is the bug. Checking membership rather than emptiness
+  // means adding a connector action fails loudly until its schema exists.
+  const unschemad = connectorTools.filter((tool) => !(tool.id in CONNECTOR_SCHEMAS))
   check(
-    'connector tools declare input schemas',
-    unschemad.every((tool) => noArgTools.includes(tool.id)),
+    'every connector tool has a declared schema',
+    unschemad.length === 0,
     unschemad.map((tool) => tool.id).join(', ')
   )
 
@@ -137,12 +140,18 @@ const main = async (): Promise<void> => {
   const toolIds = new Set(ALL_TOOLS.map((tool) => tool.id))
   const agentIds = new Set(agents.map((agent) => agent.id))
 
+  // A grant is either an exact tool id or a wildcard. Both have to resolve to
+  // something real — a typo in `stripe.*` would otherwise fail silently, with
+  // the agent simply never seeing the tools it was meant to have.
+  const dangling = (grant: string): boolean =>
+    grant.includes('*')
+      ? ![...toolIds].some((toolId) => grantCovers(grant, toolId))
+      : !toolIds.has(grant)
+
   check(
-    'every referenced tool id exists',
-    agents.every((agent) => agent.toolIds.every((toolId) => toolIds.has(toolId))),
-    agents
-      .flatMap((agent) => agent.toolIds.filter((toolId) => !toolIds.has(toolId)))
-      .join(', ')
+    'every tool grant resolves to a real tool',
+    agents.every((agent) => !agent.toolIds.some(dangling)),
+    agents.flatMap((agent) => agent.toolIds.filter(dangling)).join(', ')
   )
   check(
     'every handoff target exists',
@@ -155,6 +164,53 @@ const main = async (): Promise<void> => {
   check(
     'every agent uses a known model',
     agents.every((agent) => MODELS.some((model) => model.id === agent.model))
+  )
+
+  group('Tool grants')
+
+  check(
+    'an exact grant covers only itself',
+    grantCovers('stripe.stripe_balance', 'stripe.stripe_balance') &&
+      !grantCovers('stripe.stripe_balance', 'stripe.stripe_revenue')
+  )
+  check(
+    'a provider wildcard covers that provider and no other',
+    grantCovers('stripe.*', 'stripe.stripe_revenue') && !grantCovers('stripe.*', 'github.github_issues')
+  )
+  check(
+    'a wildcard never leaks across a name prefix',
+    // `x.*` must not swallow a future provider whose id merely starts with x.
+    !grantCovers('x.*', 'xero.xero_invoices')
+  )
+  check(
+    'a provider wildcard expands to every action that provider offers',
+    CONNECTORS.every((connector) => {
+      const expanded = grantedTools([providerGrant(connector.id)])
+      return expanded.length === connector.actions.length
+    }),
+    CONNECTORS.filter(
+      (connector) => grantedTools([providerGrant(connector.id)]).length !== connector.actions.length
+    )
+      .map((connector) => connector.id)
+      .join(', ')
+  )
+  check(
+    'the standing team reaches every connector once it is connected',
+    CONNECTORS.every((connector) =>
+      agents.some((agent) =>
+        agent.toolIds.some((grant) => grantCovers(grant, connectorToolId(connector.id, connector.actions[0]!.id)))
+      )
+    ),
+    CONNECTORS.filter(
+      (connector) =>
+        !agents.some((agent) =>
+          agent.toolIds.some((grant) =>
+            grantCovers(grant, connectorToolId(connector.id, connector.actions[0]!.id))
+          )
+        )
+    )
+      .map((connector) => connector.id)
+      .join(', ')
   )
 
   const inbox = agents.find((agent) => agent.id === 'inbox')!
@@ -180,6 +236,61 @@ const main = async (): Promise<void> => {
   vault.disconnectProvider('google')
 
   /* ── Providers ────────────────────────────────────────────────────── */
+
+  group('Subscription bridge')
+
+  const reply = (text: string) => parseReply({ text, tokensIn: 0, tokensOut: 0 })
+
+  const plain = reply('The runway is eleven months at the current burn.')
+  check('a reply with no tool block ends the turn', plain.stopReason === 'end_turn')
+  check(
+    'plain prose survives intact',
+    plain.content[0]?.type === 'text' &&
+      plain.content[0].text === 'The runway is eleven months at the current burn.'
+  )
+
+  const called = reply(
+    'Let me check.\n<use_tool>\n<name>google__gmail_search</name>\n<input>{"query":"is:unread","limit":5}</input>\n</use_tool>'
+  )
+  check('a tool block is recognised', called.stopReason === 'tool_use')
+  check(
+    'the tool name and arguments are recovered',
+    called.content.some(
+      (block) =>
+        block.type === 'tool_use' &&
+        block.name === 'google__gmail_search' &&
+        (block.input as { query?: string }).query === 'is:unread'
+    )
+  )
+  check(
+    'prose before the block is kept as text',
+    called.content[0]?.type === 'text' && called.content[0].text === 'Let me check.'
+  )
+  check(
+    'the protocol syntax never leaks into the transcript',
+    !called.content.some((block) => block.type === 'text' && block.text.includes('<use_tool>'))
+  )
+
+  const broken = reply('<use_tool>\n<name>review</name>\n<input>{not json}</input>\n</use_tool>')
+  check(
+    'malformed arguments still produce a call rather than killing the turn',
+    broken.stopReason === 'tool_use' &&
+      broken.content.some((block) => block.type === 'tool_use' && block.name === 'review')
+  )
+
+  check(
+    'every plan-backed provider names a command and an install route',
+    SUBSCRIBABLE.every(
+      (provider) =>
+        provider.subscription!.command.length > 0 &&
+        provider.subscription!.install.includes('install') &&
+        provider.subscription!.installUrl.startsWith('https://')
+    )
+  )
+  check(
+    'every plan-backed provider offers at least one model on the plan',
+    SUBSCRIBABLE.every((provider) => provider.models.some((model) => model.onPlan))
+  )
 
   group('Providers')
 
