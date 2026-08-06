@@ -33,7 +33,8 @@ const emptyState = (): AppState => ({
     boardroomModel: WORKER_MODEL,
     providerAuth: {},
     voiceEnabled: false,
-    personaVoices: {}
+    personaVoices: {},
+    favouriteModels: []
   }
 })
 

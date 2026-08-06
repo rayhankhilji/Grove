@@ -379,6 +379,8 @@ export interface Settings {
   voiceEnabled: boolean
   /** Fish Audio voice id per persona, chosen by the user. */
   personaVoices: Record<string, string>
+  /** Models starred in the picker, floated to the top of the list. */
+  favouriteModels: string[]
 }
 
 export interface AppState {

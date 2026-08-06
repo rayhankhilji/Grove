@@ -29,20 +29,54 @@ type View =
   | 'providers'
   | 'settings'
 
-const NAV: { id: View; label: string; icon: IconName; group: number }[] = [
-  { id: 'today', label: 'Today', icon: 'today', group: 0 },
-  { id: 'chat', label: 'Chat', icon: 'chat', group: 0 },
-  { id: 'boardroom', label: 'Boardroom', icon: 'chat', group: 0 },
-  { id: 'agents', label: 'Agents', icon: 'agents', group: 1 },
-  { id: 'automations', label: 'Automations', icon: 'workflows', group: 1 },
-  { id: 'connections', label: 'Connections', icon: 'connections', group: 1 },
-  { id: 'brain', label: 'Brain', icon: 'brain', group: 2 },
-  { id: 'attention', label: 'Attention', icon: 'clock', group: 2 },
-  { id: 'objectives', label: 'Objectives', icon: 'objectives', group: 2 },
-  { id: 'decisions', label: 'Decisions', icon: 'decisions', group: 2 },
-  { id: 'providers', label: 'Providers', icon: 'bolt', group: 3 },
-  { id: 'settings', label: 'Settings', icon: 'settings', group: 3 }
+interface NavItem {
+  id: View
+  label: string
+  icon: IconName
+}
+
+/**
+ * The sidebar, in three named groups plus a pinned footer.
+ *
+ * Twelve destinations in one undifferentiated column is a list you have to
+ * read. Grouped and labelled, it becomes a place you navigate: what you do
+ * today, what runs for you, and what the whole thing knows.
+ */
+const GROUPS: { label: string | null; items: NavItem[] }[] = [
+  {
+    label: null,
+    items: [
+      { id: 'today', label: 'Today', icon: 'today' },
+      { id: 'chat', label: 'Chat', icon: 'chat' },
+      { id: 'boardroom', label: 'Boardroom', icon: 'boardroom' }
+    ]
+  },
+  {
+    label: 'Runs for you',
+    items: [
+      { id: 'agents', label: 'Agents', icon: 'agents' },
+      { id: 'automations', label: 'Automations', icon: 'automations' },
+      { id: 'connections', label: 'Connections', icon: 'connections' }
+    ]
+  },
+  {
+    label: 'What it knows',
+    items: [
+      { id: 'brain', label: 'Brain', icon: 'brain' },
+      { id: 'objectives', label: 'Objectives', icon: 'objectives' },
+      { id: 'decisions', label: 'Decisions', icon: 'decisions' },
+      { id: 'attention', label: 'Attention', icon: 'attention' }
+    ]
+  }
 ]
+
+/** Pinned to the bottom: setup, not daily work. */
+const FOOTER: NavItem[] = [
+  { id: 'providers', label: 'Providers', icon: 'providers' },
+  { id: 'settings', label: 'Settings', icon: 'settings' }
+]
+
+const NAV: NavItem[] = [...GROUPS.flatMap((group) => group.items), ...FOOTER]
 
 export const App = (): ReactNode => {
   const { state, apply } = useStore()
@@ -98,75 +132,88 @@ export const App = (): ReactNode => {
           <h1>Grove</h1>
         </div>
 
-        <nav className="nav">
-          {NAV.map((item, index) => (
-            <div key={item.id}>
-              {index > 0 && NAV[index - 1]!.group !== item.group ? (
-                <div className="nav-gap" />
-              ) : null}
-              <button
-                className="nav-item"
-                style={{ width: '100%' }}
-                aria-current={view === item.id}
-                onClick={() => setView(item.id)}
-              >
-                <Icon name={item.icon} size={16} />
-                <span className="grow">{item.label}</span>
-                {counts[item.id] ? <span className="count">{counts[item.id]}</span> : null}
-              </button>
-            </div>
-          ))}
-        </nav>
-
-        <div className="rail-heading">
-          <span>Threads</span>
-          <button
-            className="icon-btn"
-            onClick={() => void startConversation()}
-            aria-label="New conversation"
-          >
-            <Icon name="plus" size={14} />
-          </button>
-        </div>
-
-        <div className="rail-list">
-          {state.conversations.length === 0 ? (
-            <p className="muted" style={{ padding: '4px 9px' }}>
-              None yet.
-            </p>
-          ) : (
-            state.conversations.map((conversation) => (
-              <div
-                className="rail-row"
-                key={conversation.id}
-                aria-current={view === 'chat' && conversation.id === activeId}
-              >
+        <div className="side-scroll">
+          {GROUPS.map((group) => (
+            <nav className="nav" key={group.label ?? 'primary'}>
+              {group.label ? <div className="nav-label">{group.label}</div> : null}
+              {group.items.map((item) => (
                 <button
-                  className="label"
-                  onClick={() => {
-                    setActiveId(conversation.id)
-                    setView('chat')
-                  }}
+                  className="nav-item"
+                  key={item.id}
+                  aria-current={view === item.id}
+                  onClick={() => setView(item.id)}
                 >
-                  {conversation.title}
+                  <Icon name={item.icon} size={16} />
+                  <span className="grow">{item.label}</span>
+                  {counts[item.id] ? <span className="count">{counts[item.id]}</span> : null}
                 </button>
+              ))}
+            </nav>
+          ))}
+
+          {/*
+            Threads belong to Chat, so they only appear once you are in it.
+            Carrying an ever-growing list under every other view is most of
+            what made this rail feel cluttered.
+          */}
+          {view === 'chat' ? (
+            <div className="nav">
+              <div className="nav-label">
+                <span className="grow">Threads</span>
                 <button
-                  className="icon-btn danger"
-                  aria-label="Delete conversation"
-                  onClick={async () => {
-                    const next = await api.deleteConversation(conversation.id)
-                    apply(next)
-                    if (activeId === conversation.id) {
-                      setActiveId(next.conversations[0]?.id ?? null)
-                    }
-                  }}
+                  className="icon-btn"
+                  onClick={() => void startConversation()}
+                  aria-label="New conversation"
                 >
-                  <Icon name="close" size={13} />
+                  <Icon name="plus" size={13} />
                 </button>
               </div>
-            ))
-          )}
+
+              {state.conversations.length === 0 ? (
+                <p className="muted nav-none">None yet.</p>
+              ) : (
+                state.conversations.map((conversation) => (
+                  <div
+                    className="rail-row"
+                    key={conversation.id}
+                    aria-current={conversation.id === activeId}
+                  >
+                    <button className="label" onClick={() => setActiveId(conversation.id)}>
+                      {conversation.title}
+                    </button>
+                    <button
+                      className="icon-btn danger"
+                      aria-label="Delete conversation"
+                      onClick={async () => {
+                        const next = await api.deleteConversation(conversation.id)
+                        apply(next)
+                        if (activeId === conversation.id) {
+                          setActiveId(next.conversations[0]?.id ?? null)
+                        }
+                      }}
+                    >
+                      <Icon name="close" size={13} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : null}
         </div>
+
+        <nav className="nav side-foot">
+          {FOOTER.map((item) => (
+            <button
+              className="nav-item"
+              key={item.id}
+              aria-current={view === item.id}
+              onClick={() => setView(item.id)}
+            >
+              <Icon name={item.icon} size={16} />
+              <span className="grow">{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </aside>
 
       <main className="pane">

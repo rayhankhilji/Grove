@@ -46,28 +46,29 @@ const MARKS: Record<string, ReactNode> = {
     </>
   ),
 
-  /* A round table with seats — the boardroom, seen from above. */
+  /* A round table with four seats, seen from above. Six read as noise at 16px;
+     four still say "a meeting" and survive the size. */
   boardroom: (
     <>
-      <P d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7" />
+      <C cx={12} cy={12} r={4} />
       <g data-part="seats">
-        <C cx={12} cy={4} r={1.4} filled />
-        <C cx={19} cy={8} r={1.4} filled />
-        <C cx={19} cy={16} r={1.4} filled />
-        <C cx={12} cy={20} r={1.4} filled />
-        <C cx={5} cy={16} r={1.4} filled />
-        <C cx={5} cy={8} r={1.4} filled />
+        <C cx={12} cy={4.2} r={1.7} filled />
+        <C cx={19.8} cy={12} r={1.7} filled />
+        <C cx={12} cy={19.8} r={1.7} filled />
+        <C cx={4.2} cy={12} r={1.7} filled />
       </g>
     </>
   ),
 
-  /* A standing team: one lead node, two reporting. */
+  /* A standing team: one lead, two reporting. The bracket that joined them
+     was a third stroke competing with the nodes, so the nodes carry it now. */
   agents: (
     <>
-      <C cx={12} cy={5.5} r={2.5} part="lead" />
-      <P d="M12 8v3.5M6.5 15v-1.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2V15" />
-      <C cx={6.5} cy={17.5} r={2.5} part="node-a" />
-      <C cx={17.5} cy={17.5} r={2.5} part="node-b" />
+      <C cx={12} cy={6} r={2.8} part="lead" />
+      <P d="M12 8.8v2.4" />
+      <P d="M6.8 15.2v-1.2a2 2 0 0 1 2-2h6.4a2 2 0 0 1 2 2v1.2" />
+      <C cx={6.8} cy={18} r={2.8} part="node-a" />
+      <C cx={17.2} cy={18} r={2.8} part="node-b" />
     </>
   ),
 
@@ -89,13 +90,15 @@ const MARKS: Record<string, ReactNode> = {
     </>
   ),
 
-  /* Contour lines of accumulated knowledge — a map, not a cartoon brain. */
+  /* Contour lines of accumulated knowledge — a map, not a cartoon brain.
+     Three concentric strata around a core, so it stays legible at 16px where
+     an outlined blob with arcs inside it turns to mush. */
   brain: (
     <>
-      <P d="M12 3.5c-3.6 0-6.5 2-6.5 4.6 0 1.3.7 2.4 1.8 3.2-1.1.8-1.8 2-1.8 3.2 0 2.6 2.9 4.6 6.5 4.6s6.5-2 6.5-4.6c0-1.3-.7-2.4-1.8-3.2 1.1-.8 1.8-2 1.8-3.2 0-2.6-2.9-4.6-6.5-4.6Z" part="ring-outer" />
-      <P d="M8.8 8.6c0 1.4 1.4 2.5 3.2 2.5s3.2-1.1 3.2-2.5" part="ring-mid" />
-      <P d="M8.8 15c0-1.4 1.4-2.5 3.2-2.5s3.2 1.1 3.2 2.5" part="ring-mid" />
-      <C cx={12} cy={11.8} r={1} part="core" filled />
+      <P d="M3.5 12a8.5 8.5 0 0 1 17 0 8.5 8.5 0 0 1-17 0" part="ring-outer" />
+      <P d="M6.8 12c0-2.6 2.3-4.6 5.2-4.6s5.2 2 5.2 4.6" part="ring-mid" />
+      <P d="M6.8 12c0 2.6 2.3 4.6 5.2 4.6s5.2-2 5.2-4.6" part="ring-mid" />
+      <C cx={12} cy={12} r={1.5} part="core" filled />
     </>
   ),
 

@@ -1,11 +1,41 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Agent, Conversation, Message, ToolCall } from '@shared/types'
 import { MODELS } from '@shared/models'
-import { CONNECTORS } from '@shared/connectors'
+import { CONNECTORS, grantCovers } from '@shared/connectors'
 import { api } from '../lib/api'
 import { useStore } from '../lib/state'
+import { providerOfModel } from '@shared/providers'
 import { Icon } from '../components/Icon'
+import { BrandMark } from '../components/Brand'
+import { ModelPicker } from '../components/ModelPicker'
 import { Avatar, Empty, Popover, Prose } from '../components/ui'
+
+const EFFORTS = [
+  { id: 'low' as const, label: 'Low', note: 'Fast answers, shallow thinking.' },
+  { id: 'medium' as const, label: 'Medium', note: 'The balanced default.' },
+  { id: 'high' as const, label: 'High', note: 'Thinks longer before answering.' }
+]
+
+const ACCESS = [
+  {
+    id: 'supervised' as const,
+    label: 'Ask first',
+    note: 'Anything that leaves this Mac waits for your approval.'
+  },
+  {
+    id: 'autonomous' as const,
+    label: 'Full access',
+    note: 'Sends, posts and files without stopping to ask.'
+  }
+]
+
+/** A padlock that opens when the agent is allowed to act unsupervised. */
+const Lock = ({ open }: { open: boolean }): ReactNode => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+    {open ? <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 6.8-1.2" /> : <path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" />}
+  </svg>
+)
 
 const LABELS: Record<string, string> = {
   review: 'Reviewed the workspace',
@@ -117,6 +147,9 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
   const [approval, setApproval] = useState<{ key: string; summary: string; toolName: string } | null>(null)
   const [agentMenu, setAgentMenu] = useState(false)
   const [modelMenu, setModelMenu] = useState(false)
+  const [effortMenu, setEffortMenu] = useState(false)
+  const [accessMenu, setAccessMenu] = useState(false)
+  const [readyProviders, setReadyProviders] = useState<string[]>([])
 
   const scroller = useRef<HTMLDivElement>(null)
   const textarea = useRef<HTMLTextAreaElement>(null)
@@ -199,6 +232,27 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
   }
 
   const connectedCount = state.connections.filter((entry) => entry.status === 'connected').length
+  const activeModel = agent?.model ?? state.settings.model
+  const modelProvider = providerOfModel(activeModel)
+
+  // The picker marks models whose provider has no credential yet, so choosing
+  // one that cannot run is a visible decision rather than a silent failure.
+  useEffect(() => {
+    void api.configuredProviders().then(setReadyProviders)
+  }, [])
+
+  // Wildcards mean the stored grant count understates the real reach, so count
+  // what the agent could actually call instead.
+  const toolCount = useMemo(() => {
+    if (!agent) return 0
+    const actions = CONNECTORS.flatMap((connector) =>
+      connector.actions.map((action) => `${connector.id}.${action.id}`)
+    )
+    const viaGrants = actions.filter((toolId) =>
+      agent.toolIds.some((grant) => grantCovers(grant, toolId))
+    ).length
+    return agent.toolIds.filter((grant) => !grant.includes('*')).length + viaGrants
+  }, [agent])
 
   return (
     <>
@@ -306,11 +360,17 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
             }}
           />
 
+          {/*
+            One row of segments, divided by hairlines: who is answering, on what
+            model, at what reasoning effort, with how much freedom to act. Every
+            control that changes the next reply lives here and nowhere else.
+          */}
           <div className="composer-bar">
             <div className="pop-wrap">
-              <button className="chip" onClick={() => setAgentMenu((v) => !v)}>
-                <Icon name={(agent?.glyph ?? 'council') as never} size={13} />
+              <button className="seg-btn" data-on={agentMenu} onClick={() => setAgentMenu((v) => !v)}>
+                <Avatar glyph={agent?.glyph ?? 'chat'} tint={agent?.tint ?? '#2563eb'} size={18} />
                 {agent?.name ?? 'Agent'}
+                <Icon name="chevron" size={13} />
               </button>
               <Popover open={agentMenu} onClose={() => setAgentMenu(false)}>
                 <div className="pop-label">Answering as</div>
@@ -339,43 +399,113 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
               </Popover>
             </div>
 
+            <span className="seg-rule" />
+
             <div className="pop-wrap">
-              <button className="chip" onClick={() => setModelMenu((v) => !v)}>
-                <Icon name="sparkle" size={13} />
-                {MODELS.find((entry) => entry.id === agent?.model)?.label ?? 'Model'}
+              <button className="seg-btn" data-on={modelMenu} onClick={() => setModelMenu((v) => !v)}>
+                <BrandMark id={modelProvider.id} name={modelProvider.name} size={15} />
+                {MODELS.find((entry) => entry.id === activeModel)?.label ?? 'Model'}
+                <Icon name="chevron" size={13} />
               </button>
-              <Popover open={modelMenu} onClose={() => setModelMenu(false)}>
-                <div className="pop-label">Model</div>
-                {MODELS.map((model) => (
-                  <button
-                    key={model.id}
-                    className="pop-item"
-                    aria-selected={model.id === agent?.model}
-                    onClick={async () => {
-                      if (agent) apply(await api.saveAgent({ id: agent.id, model: model.id }))
+              {modelMenu ? (
+                <Popover open onClose={() => setModelMenu(false)}>
+                  <ModelPicker
+                    value={activeModel}
+                    favourites={state.settings.favouriteModels}
+                    ready={readyProviders}
+                    onPick={async (modelId) => {
+                      if (agent) apply(await api.saveAgent({ id: agent.id, model: modelId }))
                       setModelMenu(false)
                     }}
+                    onFavourite={async (modelId) => {
+                      const current = state.settings.favouriteModels
+                      apply(
+                        await api.updateSettings({
+                          favouriteModels: current.includes(modelId)
+                            ? current.filter((entry) => entry !== modelId)
+                            : [...current, modelId]
+                        })
+                      )
+                    }}
+                    onClose={() => setModelMenu(false)}
+                  />
+                </Popover>
+              ) : null}
+            </div>
+
+            <span className="seg-rule" />
+
+            <div className="pop-wrap">
+              <button className="seg-btn" data-on={effortMenu} onClick={() => setEffortMenu((v) => !v)}>
+                {EFFORTS.find((entry) => entry.id === (agent?.effort ?? 'high'))?.label}
+                <Icon name="chevron" size={13} />
+              </button>
+              <Popover open={effortMenu} onClose={() => setEffortMenu(false)}>
+                <div className="pop-label">Reasoning</div>
+                {EFFORTS.map((entry) => (
+                  <button
+                    key={entry.id}
+                    className="pop-item"
+                    aria-selected={entry.id === agent?.effort}
+                    onClick={async () => {
+                      if (agent) apply(await api.saveAgent({ id: agent.id, effort: entry.id }))
+                      setEffortMenu(false)
+                    }}
                   >
-                    <span className="grow">
-                      {model.label}
-                      <span className="meta">{model.note}</span>
+                    <span className="tick-slot">
+                      {entry.id === agent?.effort ? <Icon name="check" size={14} /> : null}
                     </span>
-                    {model.id === agent?.model ? (
-                      <span className="check">
-                        <Icon name="check" size={14} />
-                      </span>
-                    ) : null}
+                    <span className="grow">
+                      {entry.label}
+                      <span className="meta">{entry.note}</span>
+                    </span>
                   </button>
                 ))}
               </Popover>
             </div>
 
-            <span className="muted" style={{ fontSize: 11 }}>
-              {agent ? `${agent.toolIds.length} tools` : ''}
-              {connectedCount > 0 ? ` · ${connectedCount} connected` : ''}
+            <span className="seg-rule" />
+
+            <div className="pop-wrap">
+              <button className="seg-btn" data-on={accessMenu} onClick={() => setAccessMenu((v) => !v)}>
+                <Lock open={agent?.autonomy === 'autonomous'} />
+                {agent?.autonomy === 'autonomous' ? 'Full access' : 'Ask first'}
+                <Icon name="chevron" size={13} />
+              </button>
+              <Popover open={accessMenu} onClose={() => setAccessMenu(false)}>
+                <div className="pop-label">Acting on your behalf</div>
+                {ACCESS.map((entry) => (
+                  <button
+                    key={entry.id}
+                    className="pop-item"
+                    aria-selected={entry.id === agent?.autonomy}
+                    onClick={async () => {
+                      if (agent) apply(await api.saveAgent({ id: agent.id, autonomy: entry.id }))
+                      setAccessMenu(false)
+                    }}
+                  >
+                    <span className="tick-slot">
+                      {entry.id === agent?.autonomy ? <Icon name="check" size={14} /> : null}
+                    </span>
+                    <span className="grow">
+                      {entry.label}
+                      <span className="meta">{entry.note}</span>
+                    </span>
+                  </button>
+                ))}
+              </Popover>
+            </div>
+
+            <span className="seg-rule" />
+
+            <span className="seg-note">
+              {toolCount} {toolCount === 1 ? 'tool' : 'tools'}
+              {connectedCount > 0 ? ` · ${connectedCount} apps` : ''}
             </span>
 
             <div className="grow" />
+
+            {streaming ? <span className="spinner" aria-label="Working" /> : null}
 
             <button
               className="send"
@@ -383,7 +513,7 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
               disabled={streaming || !draft.trim()}
               aria-label="Send"
             >
-              <Icon name="send" size={15} strokeWidth={1.9} />
+              <Icon name="send" size={16} strokeWidth={2} />
             </button>
           </div>
         </div>
