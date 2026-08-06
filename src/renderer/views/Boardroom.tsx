@@ -123,7 +123,7 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
         </select>
       </Field>
 
-      <Field label="Title" hint="Optional — defaults to the meeting kind.">
+      <Field label="Title">
         <input
           type="text"
           value={title}
@@ -132,10 +132,7 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
         />
       </Field>
 
-      <Field
-        label="The brief"
-        hint="What you want out of this hour. The more specific, the sharper the room."
-      >
+      <Field label="The brief">
         <textarea
           rows={4}
           value={brief}
@@ -144,7 +141,7 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
         />
       </Field>
 
-      <Field label="Materials" hint="Decks, docs, spreadsheets. Read on this Mac, never uploaded anywhere.">
+      <Field label="Materials">
         <div className="row">
           <button
             className="btn"

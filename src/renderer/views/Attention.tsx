@@ -146,11 +146,7 @@ export const Attention = (): ReactNode => {
             </>
           )}
 
-          <p className="muted">
-            Grove records application names and durations only. It never captures screen contents,
-            keystrokes or window text beyond what an app puts in its own title bar, and everything
-            stays on this Mac.
-          </p>
+
         </div>
       </div>
     </>

@@ -124,7 +124,7 @@ const Editor = ({ workflow, onClose }: { workflow: Workflow; onClose: () => void
               }}
             />
           </Field>
-          <Field label="Days" hint="Leave all off to run every day.">
+          <Field label="Days">
             <div className="row">
               {DAYS.map((label, day) => (
                 <button

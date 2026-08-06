@@ -110,7 +110,7 @@ export const Objectives = (): ReactNode => {
 
                 {objective.keyResults.length === 0 ? (
                   <p className="muted" style={{ marginTop: 10 }}>
-                    No key results — ask Grove to add something measurable.
+                    No key results yet.
                   </p>
                 ) : null}
 

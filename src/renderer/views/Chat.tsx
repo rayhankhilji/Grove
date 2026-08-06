@@ -137,7 +137,7 @@ const Answer = ({
 }
 
 export const Chat = ({ conversation }: { conversation: Conversation }): ReactNode => {
-  const { state, apply, keyStatus } = useStore()
+  const { state, apply } = useStore()
   const [draft, setDraft] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [text, setText] = useState('')
@@ -233,6 +233,10 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
 
   const connectedCount = state.connections.filter((entry) => entry.status === 'connected').length
   const activeModel = agent?.model ?? state.settings.model
+  // Any route counts: a metered key on any provider, or a plan-backed one.
+  const hasModel =
+    readyProviders.length > 0 ||
+    Object.values(state.settings.providerAuth).includes('subscription')
   const modelProvider = providerOfModel(activeModel)
 
   // The picker marks models whose provider has no credential yet, so choosing
@@ -335,9 +339,9 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
             {error}
           </div>
         ) : null}
-        {!keyStatus.configured ? (
+        {!hasModel ? (
           <div className="notice info" style={{ maxWidth: 760, margin: '0 auto 8px' }}>
-            Add your Anthropic API key in Settings to start.
+            No model connected yet — add a key or a plan in Providers.
           </div>
         ) : null}
 

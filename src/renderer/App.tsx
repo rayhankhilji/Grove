@@ -13,10 +13,10 @@ import { Decisions } from './views/Decisions'
 import { Objectives } from './views/Objectives'
 import { Providers } from './views/Providers'
 import { Settings } from './views/Settings'
-import { Today } from './views/Today'
+import { Home } from './views/Home'
 
 type View =
-  | 'today'
+  | 'home'
   | 'chat'
   | 'boardroom'
   | 'agents'
@@ -46,7 +46,7 @@ const GROUPS: { label: string | null; items: NavItem[] }[] = [
   {
     label: null,
     items: [
-      { id: 'today', label: 'Today', icon: 'today' },
+      { id: 'home', label: 'Home', icon: 'today' },
       { id: 'chat', label: 'Chat', icon: 'chat' },
       { id: 'boardroom', label: 'Boardroom', icon: 'boardroom' }
     ]
@@ -80,7 +80,7 @@ const NAV: NavItem[] = [...GROUPS.flatMap((group) => group.items), ...FOOTER]
 
 export const App = (): ReactNode => {
   const { state, apply } = useStore()
-  const [view, setView] = useState<View>('today')
+  const [view, setView] = useState<View>('home')
   const [activeId, setActiveId] = useState<string | null>(state.conversations[0]?.id ?? null)
 
   const active = state.conversations.find((entry) => entry.id === activeId) ?? null
@@ -117,7 +117,7 @@ export const App = (): ReactNode => {
   ).length
 
   const counts: Partial<Record<View, number>> = {
-    today: state.tasks.filter((task) => !task.done).length,
+    home: state.tasks.filter((task) => !task.done).length,
     agents: liveRuns,
     objectives: state.objectives.filter((objective) => objective.status === 'active').length,
     decisions: state.decisions.filter((decision) => decision.status === 'open').length,
@@ -217,7 +217,9 @@ export const App = (): ReactNode => {
       </aside>
 
       <main className="pane">
-        {view === 'today' ? <Today /> : null}
+        {view === 'home' ? (
+          <Home onGo={(next) => setView(next as View)} onStartChat={() => void startConversation()} />
+        ) : null}
         {view === 'boardroom' ? <Boardroom /> : null}
         {view === 'agents' ? <Agents /> : null}
         {view === 'automations' ? <Automations /> : null}

@@ -67,19 +67,14 @@ export const Prose = ({ markdown }: { markdown: string }): ReactNode => {
   return <div className="prose" ref={ref} dangerouslySetInnerHTML={{ __html: render(markdown) }} />
 }
 
-export const Field = ({
-  label,
-  hint,
-  children
-}: {
-  label: string
-  hint?: ReactNode
-  children: ReactNode
-}): ReactNode => (
+/**
+ * A labelled control. There is deliberately no description slot: a field that
+ * needs a sentence under it is a field with the wrong label.
+ */
+export const Field = ({ label, children }: { label: string; children: ReactNode }): ReactNode => (
   <div className="field">
     <label>{label}</label>
     {children}
-    {hint ? <span className="hint">{hint}</span> : null}
   </div>
 )
 

@@ -60,7 +60,7 @@ const Editor = ({
         </>
       }
     >
-      <Field label="Title" hint="How an agent will recognise this when searching.">
+      <Field label="Title">
         <input
           type="text"
           value={title}
@@ -68,7 +68,7 @@ const Editor = ({
           onChange={(event) => setTitle(event.target.value)}
         />
       </Field>
-      <Field label="Knowledge" hint="Write it so it stands alone with no other context.">
+      <Field label="Knowledge">
         <textarea
           rows={12}
           value={body}
@@ -76,7 +76,7 @@ const Editor = ({
           onChange={(event) => setBody(event.target.value)}
         />
       </Field>
-      <Field label="Tags" hint="Comma separated. Helps retrieval.">
+      <Field label="Tags">
         <input
           type="text"
           value={tags}

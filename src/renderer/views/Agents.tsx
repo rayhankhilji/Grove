@@ -148,7 +148,7 @@ const Editor = ({ agent, onClose }: { agent: Agent; onClose: () => void }): Reac
         ))}
       </div>
 
-      <Field label="Instructions" hint="How this agent thinks, what it prioritises, what it never does.">
+      <Field label="Instructions">
         <LiveInput multiline rows={7} value={draft.instructions} onCommit={(value) => patch({ instructions: value })} />
       </Field>
 
@@ -309,10 +309,7 @@ const Launch = ({ agent, onClose }: { agent: Agent; onClose: () => void }): Reac
         </>
       }
     >
-      <p className="muted">
-        {agent.role}. It runs on its own and reports back in Activity — you do not have to wait here.
-      </p>
-      <Field label="Task" hint="Be specific. The agent cannot see your chat history.">
+      <Field label="Task">
         <textarea
           rows={5}
           autoFocus
@@ -510,8 +507,7 @@ export const Agents = (): ReactNode => {
                   <div className="row">
                     <Avatar glyph={agent.glyph} tint={agent.tint} />
                     <div className="grow">
-                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{agent.name}</div>
-                      <div className="muted">{agent.role}</div>
+                      <div className="agent-name">{agent.name}</div>
                     </div>
                   </div>
 

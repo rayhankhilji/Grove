@@ -76,7 +76,7 @@ const Setup = ({
         </>
       }
     >
-      <p className="muted">{spec.note}</p>
+      <div className="notice info">{spec.note}</div>
 
       <button className="btn" onClick={() => void api.openExternal(spec.setupUrl)}>
         <Icon name="external" size={14} />
@@ -85,10 +85,7 @@ const Setup = ({
 
       {oauth ? (
         <>
-          <Field
-            label="Redirect URI"
-            hint="Paste this into your OAuth app exactly. Grove listens here during the handshake."
-          >
+          <Field label="Redirect URI">
             <div className="row">
               <input type="text" readOnly value={redirectUri} className="grow" />
               <button
@@ -115,10 +112,7 @@ const Setup = ({
           </Field>
 
           {spec.needsSecret ? (
-            <Field
-              label="Client secret"
-              hint="Stored encrypted in your macOS Keychain and only ever sent to this provider."
-            >
+            <Field label="Client secret">
               <input
                 type="password"
                 value={secret}
@@ -139,10 +133,7 @@ const Setup = ({
           </Field>
         </>
       ) : (
-        <Field
-          label={spec.tokenLabel ?? 'Token'}
-          hint="Stored encrypted in your macOS Keychain. Grove verifies it before saving."
-        >
+        <Field label={spec.tokenLabel ?? 'Token'}>
           <input
             type="password"
             value={token}
@@ -181,13 +172,8 @@ export const Connections = (): ReactNode => {
 
       <div className="scroll">
         <div className="body wide">
-          <div className="notice info">
-            Grove connects with your own OAuth apps and tokens. Nothing routes through our servers —
-            credentials live encrypted in your macOS Keychain and go only to the provider.
-          </div>
-
           <div className="section-title">On this Mac</div>
-          <div className="stack tight">
+          <div className="conn-grid">
             <div className="conn" data-live="true">
               <div className="logo">
                 <BrandMark id="apple" size={20} />
@@ -199,10 +185,6 @@ export const Connections = (): ReactNode => {
                     <span className="dot ok" />
                     built in
                   </span>
-                </div>
-                <div className="muted">
-                  11 actions against the Apple apps already signed in here — no OAuth, no cloud round
-                  trip. macOS asks your permission the first time an agent reaches each app.
                 </div>
               </div>
             </div>
@@ -218,10 +200,6 @@ export const Connections = (): ReactNode => {
                     <span className={`dot ${state.settings.attentionEnabled ? 'ok' : ''}`} />
                     {state.settings.attentionEnabled ? 'recording' : 'off'}
                   </span>
-                </div>
-                <div className="muted">
-                  Records which app is frontmost and for how long, so agents can hold your hours
-                  against your objectives. Never captures screen contents.
                 </div>
               </div>
               <button
@@ -258,6 +236,7 @@ export const Connections = (): ReactNode => {
                         <div className="grow">
                           <div className="row">
                             <span className="name">{spec.name}</span>
+                            <span className="tag">{spec.actions.length}</span>
                             {live ? (
                               <span className="tag ok">
                                 <span className="dot ok" />
@@ -267,11 +246,9 @@ export const Connections = (): ReactNode => {
                               <span className="tag bad">error</span>
                             ) : null}
                           </div>
-                          <div className="muted">
-                            {connection?.status === 'error' && connection.error
-                              ? connection.error
-                              : `${spec.actions.length} actions · ${spec.actions.filter((action) => action.write).length} can write`}
-                          </div>
+                          {connection?.status === 'error' && connection.error ? (
+                            <div className="err">{connection.error}</div>
+                          ) : null}
                         </div>
 
                         {live ? (
@@ -293,11 +270,6 @@ export const Connections = (): ReactNode => {
               </div>
             )
           })}
-
-          <p className="muted" style={{ marginTop: 6 }}>
-            Once a provider is connected its actions become available to your agents — open an agent
-            and switch on the ones it should be allowed to use.
-          </p>
         </div>
       </div>
 

@@ -76,9 +76,6 @@ const PlanRow = ({
   if (!status?.installed) {
     return (
       <div className="stack tight">
-        <p className="muted">
-          Needs the <code>{subscription.command}</code> command, which is not on this Mac yet.
-        </p>
         <div className="code-row">
           <code>{subscription.install}</code>
           <button
@@ -105,7 +102,6 @@ const PlanRow = ({
 
   return (
     <div className="stack tight">
-      <p className="muted">{subscription.signIn}</p>
       <div className="row">
         <span className="tag mono">{status.path}</span>
         <button className="btn tiny" onClick={onRecheck}>
@@ -338,9 +334,16 @@ export const Providers = (): ReactNode => {
 
                 <div className="provider-body">
                   {spec.keyless ? (
-                    <p className="muted">
-                      Runs against Ollama on this Mac. Start it with <code>ollama serve</code>.
-                    </p>
+                    <div className="code-row">
+                      <code>ollama serve</code>
+                      <button
+                        className="icon-btn"
+                        aria-label="Copy"
+                        onClick={() => void navigator.clipboard.writeText('ollama serve')}
+                      >
+                        <Icon name="copy" size={13} />
+                      </button>
+                    </div>
                   ) : mode === 'subscription' ? (
                     <PlanRow spec={spec} status={plan} onRecheck={refresh} />
                   ) : (
@@ -368,10 +371,7 @@ export const Providers = (): ReactNode => {
 
           <div className="section-title">Boardroom</div>
           <div className="card stack">
-            <Field
-              label="Model for boardroom seats"
-              hint="A long call is many short turns, so this is deliberately separate from the model your agents run on."
-            >
+            <Field label="Model for boardroom seats">
               <select
                 value={state.settings.boardroomModel}
                 onChange={async (event) =>
@@ -391,9 +391,7 @@ export const Providers = (): ReactNode => {
             <div className="split">
               <div>
                 <strong style={{ fontSize: 13 }}>Speak turns aloud</strong>
-                <p className="muted">
-                  Renders each contribution through Fish Audio using the voice mapped to that seat.
-                </p>
+  
               </div>
               <Switch
                 on={state.settings.voiceEnabled}
@@ -419,10 +417,6 @@ export const Providers = (): ReactNode => {
                     </span>
                   ) : null}
                   {mapped > 0 ? <span className="tag">{mapped} seats voiced</span> : null}
-                </div>
-                <div className="muted" style={{ marginTop: 2 }}>
-                  Text to speech. Separate from your model provider — a plan covers the words, not
-                  the voices.
                 </div>
               </div>
             </div>

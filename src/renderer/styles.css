@@ -485,10 +485,10 @@ svg {
 .body {
   max-width: 760px;
   margin: 0 auto;
-  padding: 26px 28px 80px;
+  padding: 24px 28px 80px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 26px;
 }
 
 .body.wide {
@@ -2547,4 +2547,311 @@ select {
   min-width: 0;
   max-height: none;
   overflow: visible;
+}
+
+/* ── Page rhythm ────────────────────────────────────────────────────────────
+   One structure for every view: a page is a stack of blocks, a block is a
+   heading plus either a card or a list. Nothing invents its own spacing, so
+   the gaps are the same everywhere and the eye can find the seams.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.block-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+}
+
+.block-head h3 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--fg-2);
+}
+
+.block-head .counter {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+
+/* The heading row pushes its trailing control to the far edge. */
+.block-head > *:last-child:not(h3) {
+  margin-left: auto;
+}
+
+.hero {
+  padding-bottom: 2px;
+}
+
+.hero h1 {
+  font-size: 26px;
+  font-weight: 620;
+  letter-spacing: -0.028em;
+  line-height: 1.15;
+}
+
+.hero p {
+  margin-top: 3px;
+  font-size: 13.5px;
+  color: var(--fg-3);
+}
+
+/* ── Lists ──────────────────────────────────────────────────────────────────
+   A list is one bordered container with hairlines between rows, not a stack of
+   floating cards. That was most of what made these views feel scattered.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.list > * + * {
+  border-top: 1px solid var(--line);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s var(--ease);
+}
+
+.line:hover {
+  background: var(--bg-2);
+}
+
+.line .grow {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line strong {
+  font-weight: 560;
+}
+
+.line .when {
+  font-size: 11.5px;
+  color: var(--fg-3);
+  white-space: nowrap;
+  flex: none;
+}
+
+.line .err {
+  color: var(--bad);
+  font-size: 12px;
+}
+
+/* ── Setup checklist ────────────────────────────────────────────────────── */
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.setup-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 13px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--bg), var(--bg-2));
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 520;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--raise), var(--lift);
+  transition: transform 0.13s var(--ease), box-shadow 0.13s var(--ease),
+    border-color 0.13s var(--ease);
+}
+
+.setup-step:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-3);
+  box-shadow: var(--raise-hi), var(--lift);
+}
+
+/* A finished step stops asking for attention: it flattens onto the page. */
+.setup-step[data-done='true'] {
+  background: none;
+  border-color: var(--line);
+  box-shadow: none;
+  color: var(--fg-3);
+  cursor: default;
+  transform: none;
+}
+
+.setup-step .mark {
+  width: 21px;
+  height: 21px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--fg-3);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.setup-step[data-done='true'] .mark {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.setup-step .grow {
+  flex: 1;
+}
+
+.setup-step > svg:last-child {
+  color: var(--fg-3);
+}
+
+/* ── Tasks ──────────────────────────────────────────────────────────────── */
+
+.task-add {
+  display: flex;
+  gap: 8px;
+}
+
+.task-add input {
+  flex: 1;
+}
+
+.bucket {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bucket-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  padding-left: 2px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+.task .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.task .box {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--line-3);
+  border-radius: 5px;
+  background: var(--bg);
+  color: transparent;
+  cursor: pointer;
+  transition: all 0.12s var(--ease);
+}
+
+.task .box:hover {
+  border-color: var(--brand);
+  color: var(--fg-4);
+}
+
+.task .icon-btn {
+  opacity: 0;
+}
+
+.task:hover .icon-btn {
+  opacity: 1;
+}
+
+.quiet {
+  font-size: 13px;
+  color: var(--fg-3);
+  padding: 2px;
+}
+
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+
+/* Two fields side by side, collapsing on a narrow pane. */
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 620px) {
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A labelled switch or inline select. Rows inside a card, divided. */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  font-size: 13px;
+}
+
+.toggle + .toggle {
+  border-top: 1px solid var(--line);
+}
+
+.toggle .grow {
+  flex: 1;
+}
+
+.toggle:first-child {
+  padding-top: 2px;
+}
+
+.toggle:last-child {
+  padding-bottom: 2px;
+}
+
+select.inline {
+  width: auto;
+  min-width: 120px;
+}
+
+.agent-name {
+  font-size: 13.5px;
+  font-weight: 580;
+  letter-spacing: -0.01em;
 }
