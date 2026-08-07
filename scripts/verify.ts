@@ -5,6 +5,8 @@
  *
  * Run with `npm run verify`. No API key and no window required.
  */
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { CONNECTORS, connectorToolId, grantCovers, providerGrant } from '../src/shared/connectors'
 import { HOUSE_RULES, PERSONAS, personaFor } from '../src/shared/personas'
 import { ALL_MODELS, PROVIDERS, SUBSCRIBABLE, providerOfModel } from '../src/shared/providers'
@@ -236,6 +238,32 @@ const main = async (): Promise<void> => {
   vault.disconnectProvider('google')
 
   /* ── Providers ────────────────────────────────────────────────────── */
+
+  group('Icon motion')
+
+  // The automations token rides a CSS motion path that has to be the same
+  // curve the icon strokes. They live in different files and different
+  // languages, so nothing but a check keeps them honest.
+  const glyphSource = readFileSync(join(process.cwd(), 'src/renderer/components/Glyph.tsx'), 'utf8')
+  const cssSource = readFileSync(join(process.cwd(), 'src/renderer/styles.css'), 'utf8')
+  const track = /export const TRACK = '([^']+)'/.exec(glyphSource)?.[1] ?? ''
+
+  check('the automations track is declared once', track.length > 0)
+  check(
+    'the motion path follows the drawn track exactly',
+    track.length > 0 && cssSource.includes(`offset-path: path('${track}')`),
+    track
+  )
+  check(
+    'every animated part has a rule keyed to it',
+    [...glyphSource.matchAll(/part="([\w-]+)"/g)]
+      .map((match) => match[1]!)
+      .every((part) => cssSource.includes(`[data-part='${part}']`)),
+    [...glyphSource.matchAll(/part="([\w-]+)"/g)]
+      .map((match) => match[1]!)
+      .filter((part) => !cssSource.includes(`[data-part='${part}']`))
+      .join(', ')
+  )
 
   group('Subscription bridge')
 

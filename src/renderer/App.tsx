@@ -36,38 +36,29 @@ interface NavItem {
 }
 
 /**
- * The sidebar, in three named groups plus a pinned footer.
+ * The sidebar: one list, in the order you actually move through it.
  *
- * Twelve destinations in one undifferentiated column is a list you have to
- * read. Grouped and labelled, it becomes a place you navigate: what you do
- * today, what runs for you, and what the whole thing knows.
+ * Grouping headings were an attempt to explain the app in the chrome, which is
+ * the wrong place for it — a rail should be somewhere you point, not something
+ * you read. The clusters survive as spacing alone.
  */
-const GROUPS: { label: string | null; items: NavItem[] }[] = [
-  {
-    label: null,
-    items: [
-      { id: 'home', label: 'Home', icon: 'today' },
-      { id: 'chat', label: 'Chat', icon: 'chat' },
-      { id: 'boardroom', label: 'Boardroom', icon: 'boardroom' }
-    ]
-  },
-  {
-    label: 'Runs for you',
-    items: [
-      { id: 'agents', label: 'Agents', icon: 'agents' },
-      { id: 'automations', label: 'Automations', icon: 'automations' },
-      { id: 'connections', label: 'Connections', icon: 'connections' }
-    ]
-  },
-  {
-    label: 'What it knows',
-    items: [
-      { id: 'brain', label: 'Brain', icon: 'brain' },
-      { id: 'objectives', label: 'Objectives', icon: 'objectives' },
-      { id: 'decisions', label: 'Decisions', icon: 'decisions' },
-      { id: 'attention', label: 'Attention', icon: 'attention' }
-    ]
-  }
+const GROUPS: NavItem[][] = [
+  [
+    { id: 'home', label: 'Home', icon: 'today' },
+    { id: 'chat', label: 'Chat', icon: 'chat' },
+    { id: 'boardroom', label: 'Boardroom', icon: 'boardroom' }
+  ],
+  [
+    { id: 'agents', label: 'Agents', icon: 'agents' },
+    { id: 'automations', label: 'Automations', icon: 'automations' },
+    { id: 'connections', label: 'Connections', icon: 'connections' }
+  ],
+  [
+    { id: 'brain', label: 'Brain', icon: 'brain' },
+    { id: 'objectives', label: 'Objectives', icon: 'objectives' },
+    { id: 'decisions', label: 'Decisions', icon: 'decisions' },
+    { id: 'attention', label: 'Attention', icon: 'attention' }
+  ]
 ]
 
 /** Pinned to the bottom: setup, not daily work. */
@@ -76,7 +67,7 @@ const FOOTER: NavItem[] = [
   { id: 'settings', label: 'Settings', icon: 'settings' }
 ]
 
-const NAV: NavItem[] = [...GROUPS.flatMap((group) => group.items), ...FOOTER]
+const NAV: NavItem[] = [...GROUPS.flat(), ...FOOTER]
 
 export const App = (): ReactNode => {
   const { state, apply } = useStore()
@@ -134,9 +125,8 @@ export const App = (): ReactNode => {
 
         <div className="side-scroll">
           {GROUPS.map((group) => (
-            <nav className="nav" key={group.label ?? 'primary'}>
-              {group.label ? <div className="nav-label">{group.label}</div> : null}
-              {group.items.map((item) => (
+            <nav className="nav" key={group[0]!.id}>
+              {group.map((item) => (
                 <button
                   className="nav-item"
                   key={item.id}

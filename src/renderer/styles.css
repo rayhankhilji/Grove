@@ -236,8 +236,10 @@ svg {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 16px;
+  /* With the headings gone, this gap is the only thing grouping the rail —
+     wide enough to read as a break, narrow enough to stay one list. */
+  gap: 13px;
+  padding-top: 14px;
   -webkit-app-region: no-drag;
 }
 
@@ -1946,11 +1948,40 @@ select {
   transform: translateY(calc(var(--lively, 0) * -1px));
 }
 
-/* Automations — the token sets off down the track by itself. */
+/* Automations — the token sets off down the track by itself, following the
+   exact path the stroke draws. A zero duration when nothing is hovering keeps
+   it parked at the origin, which is also how reduced motion switches it off:
+   --lively goes to 0 and the animation simply never runs. */
 .glyph[data-glyph='automations'] [data-part='token'] {
-  transform-origin: 4px 7px;
-  transform: scale(calc(1 - var(--lively, 0) * 0.35));
-  opacity: calc(1 - var(--lively, 0) * 0.15);
+  offset-path: path('M4 6.7h5.2a3 3 0 0 1 3 3v4.6a3 3 0 0 0 3 3H20');
+  offset-distance: 0%;
+  offset-rotate: 0deg;
+  animation: ride-track calc(var(--lively, 0) * 1.9s) linear infinite;
+}
+
+.glyph[data-glyph='automations'] [data-part='origin'] {
+  opacity: calc(1 - var(--lively, 0) * 0.55);
+}
+
+.glyph[data-glyph='automations'] [data-part='tip'] {
+  transform: translateX(calc(var(--lively, 0) * 1.2px));
+}
+
+@keyframes ride-track {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
 }
 
 /* Connections — the two links close the gap. */
@@ -1961,13 +1992,13 @@ select {
   transform: translate(calc(var(--lively, 0) * 0.9px), calc(var(--lively, 0) * 0.9px));
 }
 
-/* Brain — the contours breathe and the core brightens. */
-.glyph[data-glyph='brain'] [data-part='ring-mid'] {
-  opacity: calc(0.42 + var(--lively, 0) * 0.58);
-  transform: scale(calc(1 + var(--lively, 0) * 0.12));
+/* Brain — the folds surface on hover; at rest it is two hemispheres and a
+   fissure, which is all that survives 16px anyway. */
+.glyph[data-glyph='brain'] [data-part='gyri'] {
+  opacity: calc(var(--lively, 0) * 0.85);
 }
-.glyph[data-glyph='brain'] [data-part='core'] {
-  transform: scale(calc(1 + var(--lively, 0) * 0.5));
+.glyph[data-glyph='brain'] [data-part='fissure'] {
+  opacity: calc(0.55 + var(--lively, 0) * 0.45);
 }
 
 /* Attention — the swept hour fills and the hand advances. */
@@ -1993,6 +2024,9 @@ select {
 }
 
 /* Decisions — one branch is taken, the other recedes. */
+.glyph[data-glyph='decisions'] [data-part='branch-a'] {
+  opacity: 1;
+}
 .glyph[data-glyph='decisions'] [data-part='branch-b'],
 .glyph[data-glyph='decisions'] [data-part='end-b'] {
   opacity: calc(1 - var(--lively, 0) * 0.62);

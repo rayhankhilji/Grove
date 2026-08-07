@@ -23,6 +23,13 @@ const C = ({ cx, cy, r, part, filled }: { cx: number; cy: number; r: number; par
 )
 
 /**
+ * The automations track, exported so the stylesheet's motion path is literally
+ * the same curve the icon draws. Keeping one copy is the only way the token
+ * and the line cannot drift apart.
+ */
+export const TRACK = 'M4 6.7h5.2a3 3 0 0 1 3 3v4.6a3 3 0 0 0 3 3H20'
+
+/**
  * Each mark is a fragment; stroke, fill and sizing come from the wrapper so
  * every glyph is guaranteed to sit on the same optical weight.
  */
@@ -72,13 +79,15 @@ const MARKS: Record<string, ReactNode> = {
     </>
   ),
 
-  /* A track with a token travelling it — work moving on its own. */
+  /* A track with a token that actually travels it. The token rides the same
+     path the stroke draws, via CSS motion path, so the two can never drift
+     out of register the way two hand-tuned animations would. */
   automations: (
     <>
-      <P d="M4 7h5a3 3 0 0 1 3 3v4a3 3 0 0 0 3 3h5" />
-      <P d="M17.5 14.5 20 17l-2.5 2.5" />
-      <C cx={4} cy={7} r={2} />
-      <C cx={4} cy={7} r={1.6} part="token" filled />
+      <P d={TRACK} />
+      <P d="M17.3 14.6 20 17.3l-2.7 2.7" part="tip" />
+      <C cx={4} cy={6.7} r={2} part="origin" />
+      <circle cx={0} cy={0} r={1.9} data-part="token" fill="currentColor" />
     </>
   ),
 
@@ -90,15 +99,20 @@ const MARKS: Record<string, ReactNode> = {
     </>
   ),
 
-  /* Contour lines of accumulated knowledge — a map, not a cartoon brain.
-     Three concentric strata around a core, so it stays legible at 16px where
-     an outlined blob with arcs inside it turns to mush. */
+  /* An actual brain: two hemispheres with a pinched waist and a longitudinal
+     fissure down the middle. The gyri are a separate part that fades up on
+     hover, so the mark stays clean at 16px and only shows its detail when
+     something is pointing at it. */
   brain: (
     <>
-      <P d="M3.5 12a8.5 8.5 0 0 1 17 0 8.5 8.5 0 0 1-17 0" part="ring-outer" />
-      <P d="M6.8 12c0-2.6 2.3-4.6 5.2-4.6s5.2 2 5.2 4.6" part="ring-mid" />
-      <P d="M6.8 12c0 2.6 2.3 4.6 5.2 4.6s5.2-2 5.2-4.6" part="ring-mid" />
-      <C cx={12} cy={12} r={1.5} part="core" filled />
+      <P d="M12 4.4c-1.3 0-2.4.6-3 1.6-2.3.2-4 1.9-4 4 0 .8.2 1.6.7 2.2-.5.6-.7 1.3-.7 2.1 0 2.3 2 4.1 4.4 4.1h5.2c2.4 0 4.4-1.8 4.4-4.1 0-.8-.2-1.5-.7-2.1.5-.6.7-1.4.7-2.2 0-2.1-1.7-3.8-4-4-.6-1-1.7-1.6-3-1.6z" />
+      <P d="M12 4.6v13.6" part="fissure" />
+      <g data-part="gyri">
+        <P d="M8.6 8.8c1.4 0 2.3 1 2.3 2.2" />
+        <P d="M15.4 8.8c-1.4 0-2.3 1-2.3 2.2" />
+        <P d="M9 14.7c1.1 0 1.8.7 1.8 1.7" />
+        <P d="M15 14.7c-1.1 0-1.8.7-1.8 1.7" />
+      </g>
     </>
   ),
 
