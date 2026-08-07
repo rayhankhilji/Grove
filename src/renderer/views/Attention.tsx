@@ -19,7 +19,7 @@ const RANGES = [
 /** Rank is carried by opacity rather than hue — the system has no colour. */
 const shadeFor = (index: number): string => `color-mix(in srgb, var(--fg) ${Math.max(22, 100 - index * 11)}%, transparent)`
 
-export const Attention = (): ReactNode => {
+export const Attention = ({ embedded }: { embedded?: boolean } = {}): ReactNode => {
   const { state, apply } = useStore()
   const [days, setDays] = useState(1)
   const [focus, setFocus] = useState<string>('')
@@ -47,8 +47,8 @@ export const Attention = (): ReactNode => {
 
   return (
     <>
-      <div className="topbar">
-        <h2>Attention</h2>
+      <div className={embedded ? 'viewbar' : 'topbar'}>
+        {embedded ? null : <h2>Attention</h2>}
         <div className="row" style={{ marginLeft: 8 }}>
           {RANGES.map((range) => (
             <button

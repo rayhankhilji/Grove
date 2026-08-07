@@ -3,14 +3,11 @@ import { api } from './lib/api'
 import { useStore } from './lib/state'
 import { Icon, type IconName } from './components/Icon'
 import { Agents } from './views/Agents'
-import { Attention } from './views/Attention'
 import { Automations } from './views/Automations'
 import { Boardroom } from './views/Boardroom'
 import { Brain } from './views/Brain'
 import { Chat } from './views/Chat'
 import { Connections } from './views/Connections'
-import { Decisions } from './views/Decisions'
-import { Objectives } from './views/Objectives'
 import { Providers } from './views/Providers'
 import { Settings } from './views/Settings'
 import { Home } from './views/Home'
@@ -22,10 +19,7 @@ type View =
   | 'agents'
   | 'automations'
   | 'connections'
-  | 'attention'
-  | 'brain'
-  | 'objectives'
-  | 'decisions'
+  | 'knowledge'
   | 'providers'
   | 'settings'
 
@@ -51,18 +45,17 @@ const GROUPS: NavItem[][] = [
   [
     { id: 'agents', label: 'Agents', icon: 'agents' },
     { id: 'automations', label: 'Automations', icon: 'automations' },
-    { id: 'connections', label: 'Connections', icon: 'connections' }
-  ],
-  [
-    { id: 'brain', label: 'Brain', icon: 'brain' },
-    { id: 'objectives', label: 'Objectives', icon: 'objectives' },
-    { id: 'decisions', label: 'Decisions', icon: 'decisions' },
-    { id: 'attention', label: 'Attention', icon: 'attention' }
+    { id: 'knowledge', label: 'Knowledge', icon: 'brain' }
   ]
 ]
 
-/** Pinned to the bottom: setup, not daily work. */
+/**
+ * Pinned to the bottom: the things you set up once. Connections belongs here
+ * rather than in the main rail — it is a drawer of credentials, not somewhere
+ * you go to get work done.
+ */
 const FOOTER: NavItem[] = [
+  { id: 'connections', label: 'Connections', icon: 'connections' },
   { id: 'providers', label: 'Providers', icon: 'providers' },
   { id: 'settings', label: 'Settings', icon: 'settings' }
 ]
@@ -110,10 +103,8 @@ export const App = (): ReactNode => {
   const counts: Partial<Record<View, number>> = {
     home: state.tasks.filter((task) => !task.done).length,
     agents: liveRuns,
-    objectives: state.objectives.filter((objective) => objective.status === 'active').length,
-    decisions: state.decisions.filter((decision) => decision.status === 'open').length,
     connections: state.connections.filter((entry) => entry.status === 'connected').length,
-    brain: state.brain.length
+    knowledge: state.brain.length
   }
 
   return (
@@ -214,10 +205,7 @@ export const App = (): ReactNode => {
         {view === 'agents' ? <Agents /> : null}
         {view === 'automations' ? <Automations /> : null}
         {view === 'connections' ? <Connections /> : null}
-        {view === 'brain' ? <Brain /> : null}
-        {view === 'attention' ? <Attention /> : null}
-        {view === 'objectives' ? <Objectives /> : null}
-        {view === 'decisions' ? <Decisions /> : null}
+        {view === 'knowledge' ? <Brain /> : null}
         {view === 'providers' ? <Providers /> : null}
         {view === 'settings' ? <Settings /> : null}
         {view === 'chat' ? (

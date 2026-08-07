@@ -42,6 +42,10 @@
   --bad: #b42318;
 
   --sans: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  /* A softer geometric for the name and the big headings, so the product has
+     a voice the interface type does not. Ships with macOS — no web font, no
+     network request under the CSP. */
+  --display: 'Avenir Next', 'SF Pro Display', -apple-system, 'Futura', sans-serif;
   --mono: 'SF Mono', ui-monospace, Menlo, monospace;
 
   --r-sm: 6px;
@@ -200,34 +204,31 @@ svg {
 
 .wordmark {
   display: flex;
-  align-items: baseline;
-  gap: 7px;
-  height: 26px;
+  align-items: center;
+  height: 30px;
   padding: 0 8px;
   flex: none;
 }
 
-/* Set as a mark, not a heading: small, wide-tracked and upper case, so it
-   reads as the product's name and never competes with the view title. */
 .wordmark h1 {
-  font-size: 11px;
-  font-weight: 620;
-  letter-spacing: 0.19em;
-  text-transform: uppercase;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.022em;
   color: var(--fg);
   line-height: 1;
 }
 
-/* One square full stop after the name — the only ornament in the chrome. */
+/* One round full stop after the name — the only ornament in the chrome. */
 .wordmark h1::after {
   content: '';
   display: inline-block;
-  width: 4px;
-  height: 4px;
-  margin-left: 1px;
-  border-radius: 1px;
+  width: 5px;
+  height: 5px;
+  margin-left: 3px;
+  border-radius: 50%;
   background: var(--brand);
-  transform: translateY(-1px);
+  vertical-align: baseline;
 }
 
 .side-scroll {
@@ -292,15 +293,16 @@ svg {
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 6px 8px;
+  padding: 7.5px 9px;
   border: none;
-  border-radius: var(--r-sm);
+  border-radius: 8px;
   background: transparent;
   color: var(--fg-2);
   text-align: left;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 480;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.008em;
   transition: color 0.13s var(--ease), background 0.13s var(--ease);
 }
 
@@ -312,7 +314,7 @@ svg {
 .nav-item[aria-current='true'] {
   color: var(--fg);
   background: var(--bg-3);
-  font-weight: 560;
+  font-weight: 580;
 }
 
 /* The current view is marked by a rail on the left edge, which survives a
@@ -331,7 +333,7 @@ svg {
 }
 
 .nav-item[aria-current='true']::before {
-  height: 17px;
+  height: 19px;
 }
 
 .nav-item svg {
@@ -452,7 +454,8 @@ svg {
 }
 
 .topbar h2 {
-  font-size: 14px;
+  font-family: var(--display);
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.014em;
   white-space: nowrap;
@@ -2625,10 +2628,29 @@ select {
 }
 
 .hero h1 {
-  font-size: 26px;
-  font-weight: 620;
-  letter-spacing: -0.028em;
+  font-family: var(--display);
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.026em;
   line-height: 1.15;
+}
+
+/* The name is a link when it is missing, so the greeting itself is the prompt
+   to fill it in rather than a separate piece of onboarding. */
+.hero .name-gap {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--fg-4);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 4px;
+}
+
+.hero .name-gap:hover {
+  color: var(--fg-3);
 }
 
 .hero p {
@@ -2888,4 +2910,112 @@ select.inline {
   font-size: 13.5px;
   font-weight: 580;
   letter-spacing: -0.01em;
+}
+
+/* Home — the roof lifts and the door opens a shade. */
+.glyph[data-glyph='today'] [data-part='roof'] {
+  transform: translateY(calc(var(--lively, 0) * -1.1px));
+}
+.glyph[data-glyph='today'] [data-part='door'] {
+  opacity: calc(0.5 + var(--lively, 0) * 0.5);
+}
+
+/* Chat — the three dots land in turn, the way a reply arrives. */
+.glyph[data-glyph='chat'] [data-part='dots'] circle:nth-child(1) {
+  opacity: calc(0.3 + var(--lively, 0) * 0.7);
+  transition-delay: 0s;
+}
+.glyph[data-glyph='chat'] [data-part='dots'] circle:nth-child(2) {
+  opacity: calc(0.3 + var(--lively, 0) * 0.7);
+  transition-delay: 0.09s;
+}
+.glyph[data-glyph='chat'] [data-part='dots'] circle:nth-child(3) {
+  opacity: calc(0.3 + var(--lively, 0) * 0.7);
+  transition-delay: 0.18s;
+}
+.glyph[data-glyph='chat'] [data-part='dots'] {
+  transition: opacity 0.2s var(--ease);
+}
+
+/* Knowledge — the pages open a little further. */
+.glyph[data-glyph='brain'] [data-part='page-l'] {
+  transform-origin: 12px 13px;
+  transform: rotate(calc(var(--lively, 0) * -3deg));
+}
+.glyph[data-glyph='brain'] [data-part='page-r'] {
+  transform-origin: 12px 13px;
+  transform: rotate(calc(var(--lively, 0) * 3deg));
+}
+.glyph[data-glyph='brain'] [data-part='spine'] {
+  opacity: calc(0.55 + var(--lively, 0) * 0.45);
+}
+
+/* ── View tabs ──────────────────────────────────────────────────────────────
+   Home carries four related answers to "how am I doing" — the overview,
+   objectives, decisions and where the hours went. Tabs in the title bar,
+   rather than four separate entries competing in the rail.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.tabs {
+  display: flex;
+  gap: 1px;
+  -webkit-app-region: no-drag;
+}
+
+.tab {
+  position: relative;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  transition: color 0.13s var(--ease), background 0.13s var(--ease);
+}
+
+.tab:hover {
+  color: var(--fg-2);
+  background: var(--bg-2);
+}
+
+.tab[data-on='true'] {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+/* The current tab is underscored on the bar's own hairline, so the topbar
+   border does double duty instead of gaining a second line. */
+.tab[data-on='true']::after {
+  content: '';
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  bottom: -15px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--brand);
+}
+
+/* An embedded view's controls, with the page title stripped: it sits under
+   Home's title bar rather than pretending to be one. */
+.viewbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px 0;
+  flex: none;
+}
+
+.viewbar .spacer {
+  flex: 1;
+}
+
+.viewbar .sub {
+  font-size: 12.5px;
+  color: var(--fg-3);
 }

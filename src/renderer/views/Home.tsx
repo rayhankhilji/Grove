@@ -4,6 +4,23 @@ import { api } from '../lib/api'
 import { useStore } from '../lib/state'
 import { Prose, Ring, relative } from '../components/ui'
 import { Icon } from '../components/Icon'
+import { Objectives } from './Objectives'
+import { Decisions } from './Decisions'
+import { Attention } from './Attention'
+
+/**
+ * Objectives, decisions and where your hours went are all answers to "how am
+ * I actually doing" — four rail entries for one question. They live here as
+ * tabs instead, which is also what stops the sidebar being a list you read.
+ */
+const TABS = [
+  { id: 'overview' as const, label: 'Overview' },
+  { id: 'objectives' as const, label: 'Objectives' },
+  { id: 'decisions' as const, label: 'Decisions' },
+  { id: 'attention' as const, label: 'Attention' }
+]
+
+type Tab = (typeof TABS)[number]['id']
 
 /**
  * Home.
@@ -39,6 +56,7 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
   const [error, setError] = useState<string | null>(null)
   const [newTask, setNewTask] = useState('')
   const [providers, setProviders] = useState<string[]>([])
+  const [tab, setTab] = useState<Tab>('overview')
 
   useEffect(() => {
     void api.configuredProviders().then(setProviders)
@@ -98,23 +116,49 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
   return (
     <>
       <div className="topbar">
-        <h2>Home</h2>
+        <div className="tabs">
+          {TABS.map((entry) => (
+            <button
+              key={entry.id}
+              className="tab"
+              data-on={tab === entry.id}
+              onClick={() => setTab(entry.id)}
+            >
+              {entry.label}
+            </button>
+          ))}
+        </div>
         <div className="spacer" />
-        <button className="btn" onClick={() => void generate()} disabled={busy || !hasModel}>
-          {busy ? 'Writing…' : briefing ? 'New briefing' : 'Write briefing'}
-        </button>
-        <button className="btn primary" onClick={onStartChat}>
-          <Icon name="chat" size={14} />
-          Ask Grove
-        </button>
+        {tab === 'overview' ? (
+          <>
+            <button className="btn" onClick={() => void generate()} disabled={busy || !hasModel}>
+              {busy ? 'Writing…' : briefing ? 'New briefing' : 'Write briefing'}
+            </button>
+            <button className="btn primary" onClick={onStartChat}>
+              <Icon name="chat" size={14} />
+              Ask Grove
+            </button>
+          </>
+        ) : null}
       </div>
 
+      {tab === 'objectives' ? <Objectives embedded /> : null}
+      {tab === 'decisions' ? <Decisions embedded /> : null}
+      {tab === 'attention' ? <Attention embedded /> : null}
+
+      {tab !== 'overview' ? null : (
       <div className="scroll">
         <div className="body">
           <header className="hero">
             <h1>
-              {greeting}
-              {state.profile.name ? `, ${state.profile.name.split(' ')[0]}` : ''}
+              {greeting},{' '}
+              {state.profile.name ? (
+                state.profile.name.split(' ')[0]
+              ) : (
+                <button className="name-gap" onClick={() => onGo('settings')}>
+                  who are you?
+                </button>
+              )}
             </h1>
             <p>{date}</p>
           </header>
@@ -243,7 +287,7 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
             <section className="block">
               <div className="block-head">
                 <h3>Moving</h3>
-                <button className="btn tiny" onClick={() => onGo('objectives')}>
+                <button className="btn tiny" onClick={() => setTab('objectives')}>
                   Open
                 </button>
               </div>
@@ -259,7 +303,7 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
                       )
                     : 0
                   return (
-                    <button className="line" key={objective.id} onClick={() => onGo('objectives')}>
+                    <button className="line" key={objective.id} onClick={() => setTab('objectives')}>
                       <Ring value={done} size={30} />
                       <span className="grow">{objective.title}</span>
                       <span className="when">{HORIZON[objective.horizon]}</span>
@@ -275,13 +319,13 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
             <section className="block">
               <div className="block-head">
                 <h3>To decide</h3>
-                <button className="btn tiny" onClick={() => onGo('decisions')}>
+                <button className="btn tiny" onClick={() => setTab('decisions')}>
                   Open
                 </button>
               </div>
               <div className="list">
                 {openDecisions.slice(0, 4).map((decision) => (
-                  <button className="line" key={decision.id} onClick={() => onGo('decisions')}>
+                  <button className="line" key={decision.id} onClick={() => setTab('decisions')}>
                     <Icon name="decisions" size={16} />
                     <span className="grow">{decision.question}</span>
                     <span className="when">{decision.options.length} options</span>
@@ -292,6 +336,7 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
           ) : null}
         </div>
       </div>
+      )}
     </>
   )
 }

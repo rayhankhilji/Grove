@@ -769,9 +769,9 @@ const connectorTools: ToolDef[] = CONNECTORS.flatMap((connector) =>
 const brainToolDefs: ToolDef[] = [
   {
     id: 'brain_search',
-    label: 'Search the company brain',
+    label: 'Search company knowledge',
     description:
-      'Search the collected context layer — everything the principal has filed about their company, market, customers and history. Check here before asking them something they may already have written down.',
+      'Search the company knowledge base — everything the principal has filed about their company, market, customers and history. Check here before asking them something they may already have written down.',
     schema: object(
       { query: str('What you are looking for.'), limit: num('Max entries, default 5.') },
       ['query']
@@ -781,9 +781,9 @@ const brainToolDefs: ToolDef[] = [
   },
   {
     id: 'brain_add',
-    label: 'File in the company brain',
+    label: 'File to company knowledge',
     description:
-      'Add durable knowledge about the company to the brain so every future agent and boardroom seat has it. Use for facts that will still matter next quarter, not for conversational detail.',
+      'File durable knowledge about the company so every future agent and boardroom seat has it. Use for facts that will still matter next quarter, not for conversational detail.',
     schema: object(
       {
         title: str('Short descriptive title.'),

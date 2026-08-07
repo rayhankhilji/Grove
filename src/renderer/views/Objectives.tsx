@@ -63,7 +63,7 @@ const KeyResultRow = ({
   )
 }
 
-export const Objectives = (): ReactNode => {
+export const Objectives = ({ embedded }: { embedded?: boolean } = {}): ReactNode => {
   const { state, apply } = useStore()
   const [showClosed, setShowClosed] = useState(false)
 
@@ -73,8 +73,8 @@ export const Objectives = (): ReactNode => {
 
   return (
     <>
-      <div className="topbar">
-        <h2>Objectives</h2>
+      <div className={embedded ? 'viewbar' : 'topbar'}>
+        {embedded ? null : <h2>Objectives</h2>}
         <span className="sub">
           {state.objectives.filter(isOpen).length} open
           {closedCount > 0 ? ` · ${closedCount} closed` : ''}

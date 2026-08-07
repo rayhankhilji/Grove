@@ -124,10 +124,10 @@ export const refreshTray = (): void => {
           ]
         : []),
       { type: 'separator' },
-      { label: `Today · ${openTasks} open task${openTasks === 1 ? '' : 's'}`, click: () => go('today') },
+      { label: `Home · ${openTasks} open task${openTasks === 1 ? '' : 's'}`, click: () => go('home') },
       { label: 'Ask Grove…', accelerator: 'Alt+Space', click: () => go('chat') },
       { label: 'Agents', click: () => go('agents') },
-      { label: 'Attention', click: () => go('attention') },
+      { label: 'Knowledge', click: () => go('knowledge') },
       { type: 'separator' },
       {
         label: 'Automations',

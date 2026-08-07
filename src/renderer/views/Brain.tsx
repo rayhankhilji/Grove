@@ -32,7 +32,7 @@ const Editor = ({
 
   return (
     <Sheet
-      title={entry ? 'Edit knowledge' : 'Add to the brain'}
+      title={entry ? 'Edit knowledge' : 'Add to knowledge'}
       onClose={onClose}
       actions={
         <>
@@ -113,7 +113,7 @@ export const Brain = (): ReactNode => {
   return (
     <>
       <div className="topbar">
-        <h2>Brain</h2>
+        <h2>Knowledge</h2>
         <span className="sub">
           {state.brain.length} entries{pinned > 0 ? ` · ${pinned} pinned` : ''}
         </span>
@@ -150,13 +150,13 @@ export const Brain = (): ReactNode => {
             <input
               type="text"
               value={query}
-              placeholder="Search the brain…"
+              placeholder="Search knowledge…"
               onChange={(event) => setQuery(event.target.value)}
             />
           ) : null}
 
           {state.brain.length === 0 ? (
-            <Empty icon="brain" title="The brain is empty.">
+            <Empty icon="brain" title="Nothing filed yet.">
               Add what you would otherwise explain over and over: what you sell, who buys it, what
               you tried that failed, your numbers, your positioning. Import a doc or a deck and it
               becomes context for everything.

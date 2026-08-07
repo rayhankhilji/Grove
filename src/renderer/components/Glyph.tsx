@@ -34,22 +34,26 @@ export const TRACK = 'M4 6.7h5.2a3 3 0 0 1 3 3v4.6a3 3 0 0 0 3 3H20'
  * every glyph is guaranteed to sit on the same optical weight.
  */
 const MARKS: Record<string, ReactNode> = {
-  /* Sunrise over a horizon — the day ahead, not a generic sun. */
+  /* A house. Not a sunrise, not a dashboard abstraction — the thing every
+     other application on this machine uses for the same idea. */
   today: (
     <>
-      <P d="M3 18h18" />
-      <P d="M7.5 18a4.5 4.5 0 0 1 9 0" part="rise" />
-      <P d="M12 5.5v2" part="ray" />
-      <P d="M5.6 8.1l1.4 1.4" part="ray" />
-      <P d="M18.4 8.1l-1.4 1.4" part="ray" />
+      <P d="M3.6 10.4 12 3.8l8.4 6.6" part="roof" />
+      <P d="M5.6 9v10.2a1 1 0 0 0 1 1h10.8a1 1 0 0 0 1-1V9" />
+      <P d="M9.8 20.2v-5.6a2.2 2.2 0 0 1 4.4 0v5.6" part="door" />
     </>
   ),
 
-  /* Two planes of a conversation, slightly out of register. */
+  /* An ordinary speech bubble. Some ideas have a settled form and inventing a
+     new one only costs the reader a beat. */
   chat: (
     <>
-      <P d="M4 5.5h11a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H8l-4 3z" part="near" />
-      <P d="M9.5 9.5H20a1 1 0 0 1 1 1v4" part="far" />
+      <P d="M20.5 12.4c0 4-3.8 7.2-8.5 7.2a9.8 9.8 0 0 1-2.6-.35L4.5 20.5l1.3-3.7a6.8 6.8 0 0 1-2.3-5c0-4 3.8-7.3 8.5-7.3s8.5 3.2 8.5 7.2z" />
+      <g data-part="dots">
+        <C cx={8.6} cy={12.3} r={1.05} filled />
+        <C cx={12} cy={12.3} r={1.05} filled />
+        <C cx={15.4} cy={12.3} r={1.05} filled />
+      </g>
     </>
   ),
 
@@ -99,20 +103,14 @@ const MARKS: Record<string, ReactNode> = {
     </>
   ),
 
-  /* An actual brain: two hemispheres with a pinched waist and a longitudinal
-     fissure down the middle. The gyri are a separate part that fades up on
-     hover, so the mark stays clean at 16px and only shows its detail when
-     something is pointing at it. */
+  /* Knowledge: an open book. The module used to be called Brain and drawn as
+     one, which asked the reader to decode a metaphor before finding out it
+     holds documents. */
   brain: (
     <>
-      <P d="M12 4.4c-1.3 0-2.4.6-3 1.6-2.3.2-4 1.9-4 4 0 .8.2 1.6.7 2.2-.5.6-.7 1.3-.7 2.1 0 2.3 2 4.1 4.4 4.1h5.2c2.4 0 4.4-1.8 4.4-4.1 0-.8-.2-1.5-.7-2.1.5-.6.7-1.4.7-2.2 0-2.1-1.7-3.8-4-4-.6-1-1.7-1.6-3-1.6z" />
-      <P d="M12 4.6v13.6" part="fissure" />
-      <g data-part="gyri">
-        <P d="M8.6 8.8c1.4 0 2.3 1 2.3 2.2" />
-        <P d="M15.4 8.8c-1.4 0-2.3 1-2.3 2.2" />
-        <P d="M9 14.7c1.1 0 1.8.7 1.8 1.7" />
-        <P d="M15 14.7c-1.1 0-1.8.7-1.8 1.7" />
-      </g>
+      <P d="M12 7.2v12.4" part="spine" />
+      <P d="M12 7.2C10.6 5.9 8.5 5.2 5.8 5.2H3.4v12.6h2.4c2.7 0 4.8.7 6.2 1.8" part="page-l" />
+      <P d="M12 7.2c1.4-1.3 3.5-2 6.2-2h2.4v12.6h-2.4c-2.7 0-4.8.7-6.2 1.8" part="page-r" />
     </>
   ),
 

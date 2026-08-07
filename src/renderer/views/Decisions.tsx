@@ -113,15 +113,15 @@ const Card = ({ decision }: { decision: Decision }): ReactNode => {
   )
 }
 
-export const Decisions = (): ReactNode => {
+export const Decisions = ({ embedded }: { embedded?: boolean } = {}): ReactNode => {
   const { state } = useStore()
   const open = state.decisions.filter((d) => d.status === 'open')
   const closed = state.decisions.filter((d) => d.status === 'decided')
 
   return (
     <>
-      <div className="topbar">
-        <h2>Decisions</h2>
+      <div className={embedded ? 'viewbar' : 'topbar'}>
+        {embedded ? null : <h2>Decisions</h2>}
         <span className="sub">{open.length} open</span>
       </div>
 
