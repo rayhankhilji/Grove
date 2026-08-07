@@ -102,6 +102,8 @@ const api = {
   // Providers & voice
   setProviderKey: (providerId: string, key: string): Promise<AppState> =>
     ipcRenderer.invoke('provider:key', providerId, key),
+  markNoticesRead: (): Promise<AppState> => ipcRenderer.invoke('notices:read'),
+  clearNotices: (): Promise<AppState> => ipcRenderer.invoke('notices:clear'),
   configuredProviders: (): Promise<string[]> => ipcRenderer.invoke('provider:configured'),
   providerPlans: (): Promise<Record<string, PlanStatus>> => ipcRenderer.invoke('provider:plans'),
   setProviderAuth: (providerId: string, mode: 'api' | 'subscription'): Promise<AppState> =>

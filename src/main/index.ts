@@ -5,6 +5,7 @@ import { syncConnections } from './connectors/manager'
 import { onRunUpdate } from './agents/runtime'
 import { startAttention, stopAttention } from './native/context'
 import { notifyRun, refreshTray, registerHotkey, releaseHotkey, startTray, stopTray } from './native/tray'
+import { noticeForRun } from './notices'
 import { startScheduler, stopScheduler } from './workflows'
 import { vault } from './vault'
 import { store } from './store'
@@ -64,10 +65,22 @@ app.whenReady().then(() => {
   startTray()
   registerHotkey()
 
-  // The menu bar mirrors run state, and finished background work is announced.
+  // The menu bar mirrors run state; finished background work is announced as a
+  // banner and filed in the notification centre, since a banner shows once.
+  //
+  // Runs publish on every step, so only a terminal state is recorded — anything
+  // else would file the same run a dozen times as it worked.
+  const announced = new Set<string>()
   onRunUpdate((run) => {
     refreshTray()
-    notifyRun(run)
+    const settled =
+      run.status === 'succeeded' || run.status === 'failed' || run.status === 'awaiting_approval'
+    const stamp = `${run.id}:${run.status}`
+    if (settled && !announced.has(stamp)) {
+      announced.add(stamp)
+      notifyRun(run)
+      noticeForRun(run)
+    }
   })
 
   app.on('activate', () => {

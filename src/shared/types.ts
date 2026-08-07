@@ -277,6 +277,21 @@ export interface Connection {
   configured: boolean
 }
 
+/* ── Notifications ───────────────────────────────────────────────────────── */
+
+export type NoticeKind = 'run' | 'approval' | 'automation' | 'error' | 'connection'
+
+export interface Notice {
+  id: ID
+  kind: NoticeKind
+  title: string
+  body: string
+  /** View to open when the notice is clicked. */
+  view: string | null
+  read: boolean
+  at: ISO
+}
+
 /* ── Boardroom ───────────────────────────────────────────────────────────── */
 
 export type MeetingKind =
@@ -400,6 +415,7 @@ export interface AppState {
   workflows: Workflow[]
   workflowRuns: WorkflowRun[]
   connections: Connection[]
+  notices: Notice[]
   settings: Settings
 }
 

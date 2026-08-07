@@ -46,6 +46,7 @@ import { cliStatus, forgetCommands, type CliStatus } from './llm/cli'
 import { PROVIDERS, SUBSCRIBABLE } from '@shared/providers'
 import { currentFocus } from './native/context'
 import { vault } from './vault'
+import { clearNotices, markAllRead } from './notices'
 import { id, now, store } from './store'
 
 const broadcast = (event: AgentEvent): void => {
@@ -78,6 +79,9 @@ export const registerIpc = (): void => {
   })
 
   handle<[], string>('native:focus', () => currentFocus())
+
+  handle<[], AppState>('notices:read', () => markAllRead())
+  handle<[], AppState>('notices:clear', () => clearNotices())
 
   /* ── Boardroom ─────────────────────────────────────────────────────── */
 

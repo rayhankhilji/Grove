@@ -1,6 +1,7 @@
 import type { WorkflowRun } from '@shared/types'
 import { startRun } from './agents/runtime'
 import { id, now, store } from './store'
+import { noticeForWorkflow } from './notices'
 
 type Listener = () => void
 const listeners = new Set<Listener>()
@@ -86,6 +87,7 @@ export const runWorkflow = async (
     })
   }
 
+  noticeForWorkflow(workflowRun)
   publish()
   return workflowRun
 }

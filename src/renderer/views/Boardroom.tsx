@@ -4,7 +4,7 @@ import { DOMAINS, PERSONAS, PERSONA_DISCLAIMER, personaFor } from '@shared/perso
 import { api } from '../lib/api'
 import { useStore } from '../lib/state'
 import { Icon } from '../components/Icon'
-import { Empty, Field, Prose, Sheet, relative } from '../components/ui'
+import { Empty, Prose, relative } from '../components/ui'
 import { Shader } from '../components/Shader'
 
 /** Initials tile — the personas have no portraits, and shouldn't. */
@@ -90,135 +90,191 @@ const Setup = ({ onClose }: { onClose: () => void }): ReactNode => {
     onClose()
   }
 
+  const initials = (name: string): string =>
+    name.split(' ').map((part) => part[0]).join('').slice(0, 2)
+
+  /*
+   * A full pane, not a modal. Choosing a bench means reading eight people and
+   * comparing them, which a 480px sheet with its own scrollbar makes needlessly
+   * hard — the brief stays put on the left while the room fills on the right.
+   */
   return (
-    <Sheet
-      title="Convene a room"
-      onClose={onClose}
-      actions={
-        <>
-          <button className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn primary"
-            disabled={picked.length === 0 || !brief.trim()}
-            onClick={() => void begin()}
-          >
-            <Icon name="play" size={13} />
-            Start the call
-          </button>
-        </>
-      }
-    >
-      <Field label="Kind of meeting">
-        <select value={kind} onChange={(event) => setKind(event.target.value)}>
-          {meta.kinds.map((entry) => (
-            <option key={entry.id} value={entry.id}>
-              {entry.label}
-            </option>
-          ))}
-        </select>
-      </Field>
-
-      <Field label="Title">
-        <input
-          type="text"
-          value={title}
-          placeholder="Series A readiness"
-          onChange={(event) => setTitle(event.target.value)}
-        />
-      </Field>
-
-      <Field label="The brief">
-        <textarea
-          rows={4}
-          value={brief}
-          placeholder="We're at $18k MRR, growing 9% monthly, 14 months runway. I want to know whether to raise now or push to $40k first."
-          onChange={(event) => setBrief(event.target.value)}
-        />
-      </Field>
-
-      <Field label="Materials">
-        <div className="row">
-          <button
-            className="btn"
-            onClick={async () => {
-              const added = await api.attachMaterials()
-              setAttachments((current) => [...current, ...added])
-            }}
-          >
-            <Icon name="doc" size={14} />
-            Add files
-          </button>
-          {attachments.map((file) => (
-            <span className="tag accent" key={file.name}>
-              {file.name} · {Math.round(file.text.length / 1000)}k
-            </span>
-          ))}
-        </div>
-      </Field>
-
-      <div className="section-title">Suggested benches</div>
-      <div className="wrap-list">
-        {meta.benches.map((bench) => (
-          <button
-            key={bench.id}
-            className="tool-pick"
-            onClick={() => {
-              setPicked(bench.personaIds)
-              setKind(bench.kind)
-            }}
-          >
-            <Icon name="agents" size={12} />
-            {bench.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="section-title">The bench · {picked.length}/8</div>
-      <div className="row">
-        <input
-          className="grow"
-          type="text"
-          value={search}
-          placeholder="Search the bench…"
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <select
-          value={domain}
-          style={{ width: 'auto' }}
-          onChange={(event) => setDomain(event.target.value)}
+    <>
+      <div className="topbar">
+        <h2>New session</h2>
+        <div className="spacer" />
+        <button className="btn" onClick={onClose}>
+          Cancel
+        </button>
+        <button
+          className="btn primary"
+          disabled={picked.length === 0 || !brief.trim()}
+          onClick={() => void begin()}
         >
-          <option value="All">All</option>
-          {DOMAINS.map((entry) => (
-            <option key={entry} value={entry}>
-              {entry}
-            </option>
-          ))}
-        </select>
+          <Icon name="play" size={13} />
+          Start
+        </button>
       </div>
 
-      <div className="persona-grid">
-        {visible.map((persona) => (
-          <button
-            key={persona.id}
-            className="persona-pick"
-            data-on={picked.includes(persona.id)}
-            onClick={() => toggle(persona.id)}
-          >
-            <span className="grow">
-              <strong>{persona.name}</strong>
-              <span className="meta">{persona.brief || persona.known}</span>
-            </span>
-            {state.settings.personaVoices[persona.id] ? (
-              <Icon name="sparkle" size={12} />
+      <div className="scroll">
+        <div className="compose">
+          <div className="compose-col">
+            <section className="block">
+              <div className="block-head">
+                <h3>Kind</h3>
+              </div>
+              <div className="wrap-list">
+                {meta.kinds.map((entry) => (
+                  <button
+                    key={entry.id}
+                    className="chip"
+                    data-on={kind === entry.id}
+                    onClick={() => setKind(entry.id)}
+                  >
+                    {entry.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="block">
+              <div className="block-head">
+                <h3>Brief</h3>
+              </div>
+              <div className="card stack">
+                <input
+                  type="text"
+                  value={title}
+                  placeholder="Title"
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+                <textarea
+                  rows={7}
+                  value={brief}
+                  placeholder="What do you want the room to work on? Give them the numbers and the real question."
+                  onChange={(event) => setBrief(event.target.value)}
+                />
+              </div>
+            </section>
+
+            <section className="block">
+              <div className="block-head">
+                <h3>Materials</h3>
+                <button
+                  className="btn tiny"
+                  onClick={async () => {
+                    const added = await api.attachMaterials()
+                    setAttachments((current) => [...current, ...added])
+                  }}
+                >
+                  <Icon name="plus" size={12} />
+                  Add
+                </button>
+              </div>
+              {attachments.length > 0 ? (
+                <div className="list">
+                  {attachments.map((file) => (
+                    <div className="line" key={file.name}>
+                      <Icon name="doc" size={15} />
+                      <span className="grow">{file.name}</span>
+                      <span className="when">{Math.round(file.text.length / 1000)}k</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+
+            {meta.benches.length > 0 ? (
+              <section className="block">
+                <div className="block-head">
+                  <h3>Presets</h3>
+                </div>
+                <div className="wrap-list">
+                  {meta.benches.map((bench) => (
+                    <button
+                      key={bench.id}
+                      className="chip"
+                      onClick={() => {
+                        setPicked(bench.personaIds)
+                        setKind(bench.kind)
+                      }}
+                    >
+                      {bench.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
             ) : null}
-          </button>
-        ))}
-      </div>
+          </div>
 
-      <p className="muted">{PERSONA_DISCLAIMER}</p>
-    </Sheet>
+          <div className="compose-col">
+            <section className="block">
+              <div className="block-head">
+                <h3>The room</h3>
+                <span className="counter">{picked.length}/8</span>
+              </div>
+
+              <div className="picker-search boxed">
+                <Icon name="search" size={15} />
+                <input
+                  type="text"
+                  value={search}
+                  placeholder="Search advisers"
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+
+              <div className="wrap-list">
+                <button className="chip" data-on={domain === 'All'} onClick={() => setDomain('All')}>
+                  All
+                </button>
+                {DOMAINS.map((entry) => (
+                  <button
+                    key={entry}
+                    className="chip"
+                    data-on={domain === entry}
+                    onClick={() => setDomain(entry)}
+                  >
+                    {entry}
+                  </button>
+                ))}
+              </div>
+
+              <div className="bench">
+                {visible.map((persona) => {
+                  const on = picked.includes(persona.id)
+                  return (
+                    <button
+                      key={persona.id}
+                      className="adviser"
+                      data-on={on}
+                      onClick={() => toggle(persona.id)}
+                    >
+                      <span className="face">{initials(persona.name)}</span>
+                      <span className="grow">
+                        <span className="adviser-name">{persona.name}</span>
+                        <span className="adviser-domain">{persona.domain}</span>
+                      </span>
+                      {state.settings.personaVoices[persona.id] ? (
+                        <span className="voiced" title="Has a voice">
+                          <Icon name="sparkle" size={12} />
+                        </span>
+                      ) : null}
+                      <span className="ticker">
+                        {on ? <Icon name="check" size={13} strokeWidth={2.4} /> : null}
+                      </span>
+                    </button>
+                  )
+                })}
+                {visible.length === 0 ? <p className="quiet">Nobody matches.</p> : null}
+              </div>
+
+              <p className="fineprint">{PERSONA_DISCLAIMER}</p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
 

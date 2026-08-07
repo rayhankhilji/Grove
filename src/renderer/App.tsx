@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { api } from './lib/api'
 import { useStore } from './lib/state'
 import { Icon, type IconName } from './components/Icon'
+import { Notices } from './components/Notices'
 import { Agents } from './views/Agents'
 import { Automations } from './views/Automations'
 import { Boardroom } from './views/Boardroom'
@@ -112,6 +113,8 @@ export const App = (): ReactNode => {
       <aside className="sidebar">
         <div className="wordmark">
           <h1>Grove</h1>
+          <div className="spacer" />
+          <Notices onGo={(next) => setView(next as View)} />
         </div>
 
         <div className="side-scroll">

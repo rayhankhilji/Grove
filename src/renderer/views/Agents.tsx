@@ -55,6 +55,7 @@ const STATUS_TONE: Record<Run['status'], string> = {
 const Editor = ({ agent, onClose }: { agent: Agent; onClose: () => void }): ReactNode => {
   const { state, apply } = useStore()
   const [draft, setDraft] = useState<Agent>(agent)
+  const [expanded, setExpanded] = useState<string | null>(null)
 
   const patch = (next: Partial<Agent>): void => setDraft((current) => ({ ...current, ...next }))
 
@@ -74,208 +75,280 @@ const Editor = ({ agent, onClose }: { agent: Agent; onClose: () => void }): Reac
     state.connections.filter((entry) => entry.status === 'connected').map((entry) => entry.providerId)
   )
 
+  const reach = reachOf(draft.toolIds)
+
+  /*
+   * A full pane, like the boardroom composer. An agent is a name, a brief, and
+   * a set of permissions over twenty apps — a modal cannot show the permissions
+   * and what you are writing at the same time, which is what made this a wall.
+   */
   return (
-    <Sheet
-      title={agent.builtIn ? `Edit ${agent.name}` : draft.name || 'New agent'}
-      onClose={onClose}
-      actions={
-        <>
-          {!agent.builtIn && state.agents.some((entry) => entry.id === agent.id) ? (
-            <button
-              className="btn danger"
-              onClick={async () => {
-                apply(await api.deleteAgent(agent.id))
-                onClose()
-              }}
-            >
-              Delete
-            </button>
-          ) : null}
-          <button className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="btn primary" onClick={() => void save()}>
-            Save agent
-          </button>
-        </>
-      }
-    >
-      <div className="row">
-        <Avatar glyph={draft.glyph} tint={draft.tint} size={44} />
-        <div className="grow stack tight">
-          <input
-            type="text"
-            value={draft.name}
-            placeholder="Agent name"
-            onChange={(event) => patch({ name: event.target.value })}
-          />
-          <input
-            type="text"
-            value={draft.role}
-            placeholder="What this agent is for, in one line"
-            onChange={(event) => patch({ role: event.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="row" style={{ flexWrap: 'wrap' }}>
-        {GLYPHS.map((glyph) => (
+    <>
+      <div className="topbar">
+        <h2>{agent.builtIn ? agent.name : draft.name || 'New agent'}</h2>
+        <div className="spacer" />
+        {!agent.builtIn && state.agents.some((entry) => entry.id === agent.id) ? (
           <button
-            key={glyph}
-            className="icon-btn"
-            style={{ color: draft.glyph === glyph ? draft.tint : undefined }}
-            onClick={() => patch({ glyph })}
-            aria-label={`Icon ${glyph}`}
-          >
-            <Icon name={glyph} size={17} />
-          </button>
-        ))}
-        <div style={{ width: 8 }} />
-        {TINTS.map((tint) => (
-          <button
-            key={tint}
-            onClick={() => patch({ tint })}
-            aria-label={`Colour ${tint}`}
-            style={{
-              width: 17,
-              height: 17,
-              borderRadius: 99,
-              background: tint,
-              border: draft.tint === tint ? '2px solid var(--ink)' : '1px solid var(--line)',
-              cursor: 'pointer'
+            className="btn danger"
+            onClick={async () => {
+              apply(await api.deleteAgent(agent.id))
+              onClose()
             }}
-          />
-        ))}
-      </div>
-
-      <Field label="Instructions">
-        <LiveInput multiline rows={7} value={draft.instructions} onCommit={(value) => patch({ instructions: value })} />
-      </Field>
-
-      <div className="row">
-        <Field label="Model">
-          <select value={draft.model} onChange={(event) => patch({ model: event.target.value })}>
-            {MODELS.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.label}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Effort">
-          <select
-            value={draft.effort}
-            onChange={(event) => patch({ effort: event.target.value as Agent['effort'] })}
           >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-        </Field>
-        <Field label="Autonomy">
-          <select
-            value={draft.autonomy}
-            onChange={(event) => patch({ autonomy: event.target.value as Agent['autonomy'] })}
-          >
-            <option value="supervised">Ask before external actions</option>
-            <option value="autonomous">Act without asking</option>
-          </select>
-        </Field>
+            Delete
+          </button>
+        ) : null}
+        <button className="btn" onClick={onClose}>
+          Cancel
+        </button>
+        <button className="btn primary" disabled={!draft.name.trim()} onClick={() => void save()}>
+          Save
+        </button>
       </div>
 
-      <div className="field">
-        <label>Workspace tools</label>
-        <div className="wrap-list">
-          {WORKSPACE_TOOLS.map((tool) => (
-            <button
-              key={tool.id}
-              className="tool-pick"
-              data-on={draft.toolIds.includes(tool.id)}
-              onClick={() => toggleTool(tool.id)}
-            >
-              <Icon name={draft.toolIds.includes(tool.id) ? 'check' : 'plus'} size={12} />
-              {tool.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div className="scroll">
+        <div className="compose">
+          <div className="compose-col">
+            <section className="block">
+              <div className="block-head">
+                <h3>Identity</h3>
+              </div>
+              <div className="card stack">
+                <div className="identity">
+                  <Avatar glyph={draft.glyph} tint={draft.tint} size={46} />
+                  <div className="grow stack tight">
+                    <input
+                      type="text"
+                      value={draft.name}
+                      placeholder="Agent name"
+                      onChange={(event) => patch({ name: event.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={draft.role}
+                      placeholder="What it is for, in one line"
+                      onChange={(event) => patch({ role: event.target.value })}
+                    />
+                  </div>
+                </div>
 
-      {CONNECTORS.map((connector) => {
-        const whole = providerGrant(connector.id)
-        const grantedWhole = draft.toolIds.includes(whole)
+                <div className="glyph-row">
+                  {GLYPHS.map((glyph) => (
+                    <button
+                      key={glyph}
+                      className="glyph-pick"
+                      data-on={draft.glyph === glyph}
+                      onClick={() => patch({ glyph })}
+                      aria-label={`Icon ${glyph}`}
+                    >
+                      <Icon name={glyph} size={17} />
+                    </button>
+                  ))}
+                </div>
 
-        return (
-          <div className="field" key={connector.id}>
-            <div className="field-head">
-              <BrandMark id={connector.id} name={connector.name} size={16} />
-              <label>{connector.name}</label>
-              {!connected.has(connector.id) ? (
-                <span className="muted">not connected — these stay inactive</span>
-              ) : null}
-            </div>
-            <div className="wrap-list">
-              {/*
-                One switch for the whole app. This is what keeps a newly
-                connected service usable without revisiting every agent: the
-                grant is a wildcard, so any action added later is covered too.
-              */}
-              <button
-                className="tool-pick whole"
-                data-on={grantedWhole}
-                onClick={() => toggleTool(whole)}
-              >
-                <Icon name={grantedWhole ? 'check' : 'plus'} size={12} />
-                Everything in {connector.name}
-              </button>
+                <div className="tint-row">
+                  {TINTS.map((tint) => (
+                    <button
+                      key={tint}
+                      className="tint-pick"
+                      data-on={draft.tint === tint}
+                      style={{ background: tint }}
+                      onClick={() => patch({ tint })}
+                      aria-label={`Colour ${tint}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
 
-              {connector.actions.map((action) => {
-                const toolId = connectorToolId(connector.id, action.id)
-                const explicit = draft.toolIds.includes(toolId)
-                return (
-                  <button
-                    key={toolId}
-                    className="tool-pick"
-                    data-on={explicit || grantedWhole}
-                    data-inherited={grantedWhole && !explicit}
-                    disabled={grantedWhole}
-                    onClick={() => toggleTool(toolId)}
-                  >
-                    <Icon name={explicit || grantedWhole ? 'check' : 'plus'} size={12} />
-                    {action.label}
-                    {action.write ? <span className="tag warn">write</span> : null}
-                  </button>
-                )
-              })}
-            </div>
+            <section className="block">
+              <div className="block-head">
+                <h3>Instructions</h3>
+              </div>
+              <div className="card">
+                <LiveInput
+                  multiline
+                  rows={10}
+                  value={draft.instructions}
+                  onCommit={(value) => patch({ instructions: value })}
+                />
+              </div>
+            </section>
+
+            <section className="block">
+              <div className="block-head">
+                <h3>How it runs</h3>
+              </div>
+              <div className="card stack">
+                <div className="pair">
+                  <Field label="Model">
+                    <select
+                      value={draft.model}
+                      onChange={(event) => patch({ model: event.target.value })}
+                    >
+                      {MODELS.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Reasoning">
+                    <select
+                      value={draft.effort}
+                      onChange={(event) => patch({ effort: event.target.value as Agent['effort'] })}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <div className="field">
+                  <label>Acting on your behalf</label>
+                  <div className="seg wide">
+                    <button
+                      data-on={draft.autonomy === 'supervised'}
+                      onClick={() => patch({ autonomy: 'supervised' })}
+                    >
+                      Ask first
+                    </button>
+                    <button
+                      data-on={draft.autonomy === 'autonomous'}
+                      onClick={() => patch({ autonomy: 'autonomous' })}
+                    >
+                      Full access
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="block">
+              <div className="block-head">
+                <h3>Hands off to</h3>
+              </div>
+              <div className="wrap-list">
+                {state.agents
+                  .filter((candidate) => candidate.id !== draft.id)
+                  .map((candidate) => (
+                    <button
+                      key={candidate.id}
+                      className="tool-pick"
+                      data-on={draft.handoffIds.includes(candidate.id)}
+                      onClick={() =>
+                        patch({
+                          handoffIds: draft.handoffIds.includes(candidate.id)
+                            ? draft.handoffIds.filter((entry) => entry !== candidate.id)
+                            : [...draft.handoffIds, candidate.id]
+                        })
+                      }
+                    >
+                      <Icon name={draft.handoffIds.includes(candidate.id) ? 'check' : 'plus'} size={12} />
+                      {candidate.name}
+                    </button>
+                  ))}
+              </div>
+            </section>
           </div>
-        )
-      })}
 
-      <div className="field">
-        <label>Can hand off to</label>
-        <div className="wrap-list">
-          {state.agents
-            .filter((candidate) => candidate.id !== draft.id)
-            .map((candidate) => (
-              <button
-                key={candidate.id}
-                className="tool-pick"
-                data-on={draft.handoffIds.includes(candidate.id)}
-                onClick={() =>
-                  patch({
-                    handoffIds: draft.handoffIds.includes(candidate.id)
-                      ? draft.handoffIds.filter((entry) => entry !== candidate.id)
-                      : [...draft.handoffIds, candidate.id]
-                  })
-                }
-              >
-                <Icon name="handoff" size={12} />
-                {candidate.name}
-              </button>
-            ))}
+          <div className="compose-col">
+            <section className="block">
+              <div className="block-head">
+                <h3>Permissions</h3>
+                <span className="counter">{reach} tools</span>
+              </div>
+
+              <div className="card">
+                <div className="wrap-list">
+                  {WORKSPACE_TOOLS.map((tool) => (
+                    <button
+                      key={tool.id}
+                      className="tool-pick"
+                      data-on={draft.toolIds.includes(tool.id)}
+                      onClick={() => toggleTool(tool.id)}
+                    >
+                      <Icon name={draft.toolIds.includes(tool.id) ? 'check' : 'plus'} size={12} />
+                      {tool.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/*
+                One row per app, expanding to its individual actions. Twenty
+                connectors laid out flat is the wall this used to be — collapsed,
+                the whole permission surface fits on one screen.
+              */}
+              <div className="grants">
+                {CONNECTORS.map((connector) => {
+                  const whole = providerGrant(connector.id)
+                  const grantedWhole = draft.toolIds.includes(whole)
+                  const picked = connector.actions.filter((action) =>
+                    draft.toolIds.includes(connectorToolId(connector.id, action.id))
+                  ).length
+                  const count = grantedWhole ? connector.actions.length : picked
+                  const isOpen = expanded === connector.id
+
+                  return (
+                    <div className="grant" key={connector.id} data-on={count > 0}>
+                      <div className="grant-head">
+                        <BrandMark id={connector.id} name={connector.name} size={20} />
+                        <button
+                          className="grant-name"
+                          onClick={() => setExpanded(isOpen ? null : connector.id)}
+                        >
+                          {connector.name}
+                          {!connected.has(connector.id) ? <span className="off">not connected</span> : null}
+                        </button>
+                        {count > 0 ? <span className="tag">{count}</span> : null}
+                        <button
+                          className={`grant-all${grantedWhole ? ' on' : ''}`}
+                          onClick={() => toggleTool(whole)}
+                        >
+                          {grantedWhole ? 'All on' : 'All'}
+                        </button>
+                        <button
+                          className="icon-btn"
+                          aria-label={isOpen ? 'Collapse' : 'Expand'}
+                          onClick={() => setExpanded(isOpen ? null : connector.id)}
+                        >
+                          <Icon name="chevron" size={14} />
+                        </button>
+                      </div>
+
+                      {isOpen ? (
+                        <div className="grant-actions">
+                          {connector.actions.map((action) => {
+                            const toolId = connectorToolId(connector.id, action.id)
+                            const explicit = draft.toolIds.includes(toolId)
+                            return (
+                              <button
+                                key={toolId}
+                                className="tool-pick"
+                                data-on={explicit || grantedWhole}
+                                data-inherited={grantedWhole && !explicit}
+                                disabled={grantedWhole}
+                                onClick={() => toggleTool(toolId)}
+                              >
+                                <Icon name={explicit || grantedWhole ? 'check' : 'plus'} size={12} />
+                                {action.label}
+                                {action.write ? <span className="tag warn">write</span> : null}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
-    </Sheet>
+    </>
   )
 }
 
@@ -469,6 +542,9 @@ export const Agents = (): ReactNode => {
     updatedAt: ''
   })
 
+  // The editor owns the pane while it is open — it is a page, not an overlay.
+  if (editing) return <Editor agent={editing} onClose={() => setEditing(null)} />
+
   return (
     <>
       <div className="topbar">
@@ -584,7 +660,6 @@ export const Agents = (): ReactNode => {
         </div>
       </div>
 
-      {editing ? <Editor agent={editing} onClose={() => setEditing(null)} /> : null}
       {launching ? <Launch agent={launching} onClose={() => setLaunching(null)} /> : null}
       {detail ? <RunDetail run={detail} onClose={() => setOpenRun(null)} /> : null}
     </>

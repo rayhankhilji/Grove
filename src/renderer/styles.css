@@ -3161,3 +3161,479 @@ select.inline {
 .turn-agent:hover .answer-actions {
   opacity: 1;
 }
+
+/* ── Notification centre ────────────────────────────────────────────────────
+   The only thing in the chrome allowed to ask for attention, so it earns its
+   pixel budget: a bell, a dot, and a panel that opens on the rail.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.wordmark .spacer {
+  flex: 1;
+}
+
+.bell-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: color 0.13s var(--ease), background 0.13s var(--ease);
+}
+
+.bell-btn:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.bell-btn[data-unread='true'] {
+  color: var(--fg);
+}
+
+/* The dot sits on the bell's shoulder rather than counting — a number here
+   turns a status light into a to-do list. */
+.bell-btn .pip {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 1.5px solid var(--canvas);
+}
+
+/* One tilt when something arrives, then it settles. A bell that keeps ringing
+   is a bell you stop seeing. */
+.bell[data-ringing='true'] [data-part='body'],
+.bell[data-ringing='true'] [data-part='clapper'] {
+  transform-origin: 12px 4px;
+  animation: bell-tilt 1.1s var(--ease) 1;
+}
+
+@keyframes bell-tilt {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(11deg);
+  }
+  45% {
+    transform: rotate(-8deg);
+  }
+  70% {
+    transform: rotate(4deg);
+  }
+}
+
+/* Catches the click that closes the panel without dimming the app behind it. */
+.pop-catch {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+}
+
+.notices {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  z-index: 45;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+}
+
+.notices-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+.notices-head .grow {
+  flex: 1;
+}
+
+.notices-none {
+  padding: 22px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--fg-3);
+}
+
+.notices-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s var(--ease);
+}
+
+.notice + .notice {
+  border-top: 1px solid var(--line);
+}
+
+.notice:hover {
+  background: var(--bg-2);
+}
+
+.notice .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-mark {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--bg-3);
+  color: var(--fg-2);
+  margin-top: 1px;
+}
+
+.notice-mark.ok {
+  color: var(--ok);
+}
+.notice-mark.warn {
+  color: var(--warn);
+}
+.notice-mark.bad {
+  color: var(--bad);
+}
+
+.notice-title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 560;
+  color: var(--fg);
+}
+
+.notice-body {
+  display: block;
+  margin-top: 1px;
+  font-size: 12px;
+  color: var(--fg-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.notice .when {
+  font-size: 11px;
+  color: var(--fg-4);
+  white-space: nowrap;
+  flex: none;
+  margin-top: 2px;
+}
+
+/* ── Two-column composer ────────────────────────────────────────────────────
+   Used where a decision needs both a form and a list you compare across —
+   convening a room, building an agent. A modal cannot do this: the moment the
+   list has its own scrollbar, the thing you are writing goes off screen.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 28px 80px;
+}
+
+@media (max-width: 900px) {
+  .compose {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compose-col {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  min-width: 0;
+}
+
+/* The search field, boxed for use outside a popover. */
+.picker-search.boxed {
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  background: var(--bg);
+  padding: 8px 11px;
+  box-shadow: var(--raise);
+}
+
+/* ── The bench ──────────────────────────────────────────────────────────── */
+
+.bench {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adviser {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--raise);
+  transition: border-color 0.13s var(--ease), transform 0.13s var(--ease),
+    box-shadow 0.13s var(--ease), background 0.13s var(--ease);
+}
+
+.adviser:hover {
+  border-color: var(--line-3);
+  transform: translateY(-1px);
+  box-shadow: var(--raise-hi);
+}
+
+.adviser[data-on='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.adviser .face {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bg-3);
+  color: var(--fg-2);
+  font-size: 11.5px;
+  font-weight: 620;
+  letter-spacing: 0.01em;
+}
+
+.adviser[data-on='true'] .face {
+  background: var(--brand);
+  color: #fff;
+}
+
+.adviser .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.adviser-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 560;
+}
+
+.adviser-domain {
+  display: block;
+  font-size: 11.5px;
+  color: var(--fg-3);
+}
+
+.adviser .voiced {
+  color: var(--brand);
+  display: flex;
+}
+
+/* A fixed slot, so rows do not shift by 13px as they are selected. */
+.adviser .ticker {
+  width: 15px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--brand);
+}
+
+.fineprint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fg-4);
+  padding-top: 2px;
+}
+
+/* ── Agent identity ─────────────────────────────────────────────────────── */
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.identity .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.glyph-row,
+.tint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.glyph-pick {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: all 0.12s var(--ease);
+}
+
+.glyph-pick:hover {
+  color: var(--fg);
+  border-color: var(--line-3);
+}
+
+.glyph-pick[data-on='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.tint-pick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--line-2);
+  cursor: pointer;
+  transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease);
+}
+
+.tint-pick:hover {
+  transform: scale(1.1);
+}
+
+/* The ring reads as selection without recolouring the swatch itself. */
+.tint-pick[data-on='true'] {
+  border-color: var(--bg);
+  box-shadow: 0 0 0 2px var(--fg);
+}
+
+.seg.wide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+/* ── Permission grants ──────────────────────────────────────────────────────
+   One collapsed row per app. Twenty connectors laid out flat is a wall; folded,
+   the whole permission surface fits on a single screen and expands where you
+   actually care.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.grants {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.grant + .grant {
+  border-top: 1px solid var(--line);
+}
+
+.grant[data-on='true'] {
+  background: var(--bg-2);
+}
+
+.grant-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+}
+
+.grant-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 520;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grant-name .off {
+  font-size: 11px;
+  color: var(--fg-4);
+  white-space: nowrap;
+}
+
+.grant-all {
+  flex: none;
+  padding: 3px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--fg-3);
+  font-size: 11px;
+  font-weight: 540;
+  cursor: pointer;
+  transition: all 0.12s var(--ease);
+}
+
+.grant-all:hover {
+  color: var(--fg);
+  border-color: var(--line-3);
+}
+
+.grant-all.on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+.grant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 11px 11px 41px;
+}
+
+.grant .icon-btn svg {
+  transition: transform 0.16s var(--ease);
+}

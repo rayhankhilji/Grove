@@ -22,6 +22,7 @@ const emptyState = (): AppState => ({
   workflows: [],
   workflowRuns: [],
   connections: [],
+  notices: [],
   settings: {
     model: DEFAULT_MODEL,
     effort: 'high',
