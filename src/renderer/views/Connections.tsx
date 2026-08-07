@@ -153,123 +153,165 @@ export const Connections = (): ReactNode => {
   const { state, apply } = useStore()
   const [setup, setSetup] = useState<ConnectorSpec | null>(null)
   const [redirectUri, setRedirectUri] = useState('')
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
     void api.redirectUri().then(setRedirectUri)
     void api.syncConnections().then(apply)
   }, [apply])
 
-  const connected = state.connections.filter((entry) => entry.status === 'connected').length
+  const connected = state.connections.filter((entry) => entry.status === 'connected')
+  const liveIds = new Set(connected.map((entry) => entry.providerId))
+
+  const visible = CONNECTORS.filter((spec) => {
+    if (filter === 'connected' && !liveIds.has(spec.id)) return false
+    if (filter !== 'all' && filter !== 'connected' && spec.category !== filter) return false
+    if (!query.trim()) return true
+    const needle = query.toLowerCase()
+    return (
+      spec.name.toLowerCase().includes(needle) ||
+      spec.category.toLowerCase().includes(needle) ||
+      spec.actions.some((action) => action.label.toLowerCase().includes(needle))
+    )
+  })
 
   return (
     <>
       <div className="topbar">
         <h2>Connections</h2>
-        <span className="sub">
-          {connected} of {CONNECTORS.length} connected
-        </span>
       </div>
 
       <div className="scroll">
         <div className="body wide">
-          <div className="section-title">On this Mac</div>
-          <div className="conn-grid">
-            <div className="conn" data-live="true">
-              <div className="logo">
-                <BrandMark id="apple" size={20} />
-              </div>
-              <div className="grow">
-                <div className="row">
-                  <span className="name">Calendar, Reminders, Notes &amp; Mail</span>
-                  <span className="tag ok">
-                    <span className="dot ok" />
-                    built in
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="conn">
-              <div className="logo">
-                <Icon name="today" size={19} />
-              </div>
-              <div className="grow">
-                <div className="row">
-                  <span className="name">Attention ledger</span>
-                  <span className={`tag ${state.settings.attentionEnabled ? 'ok' : ''}`}>
-                    <span className={`dot ${state.settings.attentionEnabled ? 'ok' : ''}`} />
-                    {state.settings.attentionEnabled ? 'recording' : 'off'}
-                  </span>
-                </div>
-              </div>
-              <button
-                className="btn"
-                onClick={async () =>
-                  apply(
-                    await api.updateSettings({ attentionEnabled: !state.settings.attentionEnabled })
-                  )
-                }
-              >
-                {state.settings.attentionEnabled ? 'Stop' : 'Start'}
-              </button>
-            </div>
+          <div className="picker-search boxed big">
+            <Icon name="search" size={16} />
+            <input
+              type="text"
+              value={query}
+              spellCheck={false}
+              placeholder="Search apps and actions"
+              onChange={(event) => setQuery(event.target.value)}
+            />
           </div>
 
-          {CATEGORIES.map((category) => {
-            const group = CONNECTORS.filter((spec) => spec.category === category)
-            if (group.length === 0) return null
+          {/* Counts live on the filters themselves, so the shape of the
+              catalogue is legible before you touch anything. */}
+          <div className="filters">
+            <button className="filter" data-on={filter === 'all'} onClick={() => setFilter('all')}>
+              All <span>{CONNECTORS.length}</span>
+            </button>
+            <button
+              className="filter"
+              data-on={filter === 'connected'}
+              onClick={() => setFilter('connected')}
+            >
+              Connected <span>{connected.length}</span>
+            </button>
+            {CATEGORIES.map((category) => {
+              const count = CONNECTORS.filter((spec) => spec.category === category).length
+              if (count === 0) return null
+              return (
+                <button
+                  key={category}
+                  className="filter"
+                  data-on={filter === category}
+                  onClick={() => setFilter(category)}
+                >
+                  {category} <span>{count}</span>
+                </button>
+              )
+            })}
+          </div>
 
-            return (
-              <div key={category}>
-                <div className="section-title">{category}</div>
-                <div className="conn-grid">
-                  {group.map((spec) => {
-                    const connection = state.connections.find((entry) => entry.providerId === spec.id)
-                    const live = connection?.status === 'connected'
-
-                    return (
-                      <div className="conn" key={spec.id} data-live={live}>
-                        <div className="logo">
-                          <BrandMark id={spec.id} name={spec.name} size={20} />
-                        </div>
-
-                        <div className="grow">
-                          <div className="row">
-                            <span className="name">{spec.name}</span>
-                            <span className="tag">{spec.actions.length}</span>
-                            {live ? (
-                              <span className="tag ok">
-                                <span className="dot ok" />
-                                {connection?.account ?? 'connected'}
-                              </span>
-                            ) : connection?.status === 'error' ? (
-                              <span className="tag bad">error</span>
-                            ) : null}
-                          </div>
-                          {connection?.status === 'error' && connection.error ? (
-                            <div className="err">{connection.error}</div>
-                          ) : null}
-                        </div>
-
-                        {live ? (
-                          <button
-                            className="btn"
-                            onClick={async () => apply(await api.disconnect(spec.id))}
-                          >
-                            Disconnect
-                          </button>
-                        ) : (
-                          <button className="btn primary" onClick={() => setSetup(spec)}>
-                            Connect
-                          </button>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+          {filter === 'all' && !query.trim() ? (
+            <div className="tool-list">
+              <div className="tool-row" data-live="true">
+                <span className="logo">
+                  <BrandMark id="apple" size={22} />
+                </span>
+                <span className="grow">
+                  <span className="tool-name">Calendar, Reminders, Notes &amp; Mail</span>
+                </span>
+                <span className="pill on">
+                  <Icon name="check" size={12} strokeWidth={2.4} />
+                  Built in
+                </span>
               </div>
-            )
-          })}
+
+              <div className="tool-row" data-live={state.settings.attentionEnabled}>
+                <span className="logo">
+                  <Icon name="attention" size={20} />
+                </span>
+                <span className="grow">
+                  <span className="tool-name">Attention ledger</span>
+                </span>
+                <button
+                  className={state.settings.attentionEnabled ? 'pill on' : 'pill add'}
+                  onClick={async () =>
+                    apply(
+                      await api.updateSettings({
+                        attentionEnabled: !state.settings.attentionEnabled
+                      })
+                    )
+                  }
+                >
+                  {state.settings.attentionEnabled ? (
+                    <>
+                      <Icon name="check" size={12} strokeWidth={2.4} />
+                      Recording
+                    </>
+                  ) : (
+                    'Start'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="tool-list">
+            {visible.map((spec) => {
+              const connection = state.connections.find((entry) => entry.providerId === spec.id)
+              const live = connection?.status === 'connected'
+
+              return (
+                <div className="tool-row" key={spec.id} data-live={live}>
+                  <span className="logo">
+                    <BrandMark id={spec.id} name={spec.name} size={22} />
+                  </span>
+
+                  <span className="grow">
+                    <span className="tool-name">{spec.name}</span>
+                    {connection?.status === 'error' && connection.error ? (
+                      <span className="tool-err">{connection.error}</span>
+                    ) : (
+                      <span className="tool-meta">
+                        {spec.actions.length} actions
+                        {live && connection?.account ? ` · ${connection.account}` : ''}
+                      </span>
+                    )}
+                  </span>
+
+                  {live ? (
+                    <button
+                      className="pill on"
+                      onClick={async () => apply(await api.disconnect(spec.id))}
+                      title="Disconnect"
+                    >
+                      <Icon name="check" size={12} strokeWidth={2.4} />
+                      Connected
+                    </button>
+                  ) : (
+                    <button className="pill add" onClick={() => setSetup(spec)} aria-label={`Connect ${spec.name}`}>
+                      <Icon name="plus" size={14} />
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+
+            {visible.length === 0 ? <p className="quiet tool-none">Nothing matches.</p> : null}
+          </div>
         </div>
       </div>
 

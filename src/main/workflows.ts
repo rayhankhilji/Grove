@@ -1,5 +1,7 @@
 import type { WorkflowRun } from '@shared/types'
 import { startRun } from './agents/runtime'
+import { asGraph, inputsFor, walkOrder } from './flow'
+import { runTool } from './tools'
 import { id, now, store } from './store'
 import { noticeForWorkflow } from './notices'
 
@@ -25,7 +27,7 @@ export const runWorkflow = async (
 ): Promise<WorkflowRun | null> => {
   const state = store.get()
   const workflow = state.workflows.find((entry) => entry.id === workflowId)
-  if (!workflow || workflow.steps.length === 0) return null
+  if (!workflow) return null
 
   const workflowRun: WorkflowRun = {
     id: id(),
@@ -46,21 +48,49 @@ export const runWorkflow = async (
   })
   publish()
 
-  let previous = ''
+  /*
+   * Walk the graph rather than the old step list. Each node's input is the
+   * output of everything wired into it, so a fan-in genuinely merges — which
+   * is the whole reason for having a canvas instead of a list.
+   */
+  const { nodes, edges } = asGraph(workflow)
+  const order = walkOrder(nodes, edges)
+  const outputs = new Map<string, string>()
 
   try {
-    for (const step of workflow.steps) {
-      const agent = store.get().agents.find((candidate) => candidate.id === step.agentId)
-      if (!agent) throw new Error('A step points at an agent that no longer exists.')
+    if (order.length === 0) throw new Error('This automation has nothing wired up yet.')
 
-      const input =
-        step.usePrevious && previous
-          ? `${step.instruction}\n\nContext from the previous step:\n\n${previous}`
-          : step.instruction
+    for (const node of order) {
+      const upstream = inputsFor(node.id, edges)
+        .map((from) => outputs.get(from))
+        .filter((value): value is string => Boolean(value))
+
+      if (node.kind === 'tool') {
+        // A tool node runs the action directly — no model, no tokens. Its
+        // arguments are literal JSON, with upstream text available as {{input}}.
+        const merged = upstream.join('\n\n')
+        let input: Record<string, unknown> = {}
+        try {
+          input = JSON.parse(node.body.replace(/\{\{\s*input\s*\}\}/g, merged.replace(/"/g, '\\"')) || '{}')
+        } catch {
+          throw new Error(`"${node.title}" has arguments that are not valid JSON.`)
+        }
+        const result = await runTool(node.ref, input)
+        if (result.isError) throw new Error(`"${node.title}" failed: ${result.result}`)
+        outputs.set(node.id, result.result)
+        continue
+      }
+
+      const agent = store.get().agents.find((candidate) => candidate.id === node.ref)
+      if (!agent) throw new Error(`"${node.title}" points at an agent that no longer exists.`)
+
+      const context = upstream.length
+        ? `${node.body}\n\nContext from earlier in this automation:\n\n${upstream.join('\n\n---\n\n')}`
+        : node.body
 
       const run = await startRun({
         agent,
-        input,
+        input: context,
         trigger: trigger === 'schedule' ? 'schedule' : 'workflow',
         triggeredBy: workflow.name,
         workflowRunId: workflowRun.id
@@ -72,7 +102,7 @@ export const runWorkflow = async (
       publish()
 
       if (run.status === 'failed') throw new Error(run.error ?? 'A step failed.')
-      previous = run.output
+      outputs.set(node.id, run.output)
     }
 
     store.update(() => {

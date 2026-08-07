@@ -200,13 +200,48 @@ export interface WorkflowStep {
   usePrevious: boolean
 }
 
+/* ── Flow graph ──────────────────────────────────────────────────────────── */
+
+/**
+ * A node on the automations canvas.
+ *
+ * `trigger` starts the flow. `agent` hands work to one of your agents.
+ * `tool` calls a single connector action directly, which is cheaper and
+ * more predictable than asking a model to do something mechanical.
+ * `note` is a comment pinned to the canvas.
+ */
+export type FlowNodeKind = 'trigger' | 'agent' | 'tool' | 'note'
+
+export interface FlowNode {
+  id: ID
+  kind: FlowNodeKind
+  /** Canvas position, in graph units. Snapped to the grid on drop. */
+  x: number
+  y: number
+  /** Agent id for `agent`, tool id for `tool`. Empty for the rest. */
+  ref: string
+  title: string
+  /** What this node should do — the prompt, or a JSON argument object. */
+  body: string
+}
+
+export interface FlowEdge {
+  id: ID
+  from: ID
+  to: ID
+}
+
 export interface Workflow {
   id: ID
   name: string
   description: string
   trigger: TriggerKind
   schedule: Schedule
+  /** The legacy linear form, kept so old workflows still load and run. */
   steps: WorkflowStep[]
+  /** The graph. Present on anything built or opened since the canvas landed. */
+  nodes: FlowNode[]
+  edges: FlowEdge[]
   enabled: boolean
   lastRunAt: ISO | null
   createdAt: ISO

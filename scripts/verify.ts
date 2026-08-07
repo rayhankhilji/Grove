@@ -18,6 +18,7 @@ import { addEntry, context as brainContext, search as brainSearch, updateEntry }
 import { vault } from '../src/main/vault'
 import { nextRun } from '../src/main/workflows'
 import { parseReply } from '../src/main/llm/cli'
+import { inputsFor, parseFlow, walkOrder } from '../src/main/flow'
 import {
   ALL_TOOLS,
   CONNECTOR_SCHEMAS,
@@ -238,6 +239,59 @@ const main = async (): Promise<void> => {
   vault.disconnectProvider('google')
 
   /* ── Providers ────────────────────────────────────────────────────── */
+
+  group('Flow graph')
+
+  const flowNodes = [
+    { id: 't', kind: 'trigger' as const, x: 0, y: 0, ref: '', title: 'Go', body: '' },
+    { id: 'a', kind: 'agent' as const, x: 0, y: 0, ref: 'chief', title: 'A', body: '' },
+    { id: 'b', kind: 'tool' as const, x: 0, y: 0, ref: 'review', title: 'B', body: '' },
+    { id: 'n', kind: 'note' as const, x: 0, y: 0, ref: '', title: 'N', body: '' },
+    { id: 'orphan', kind: 'agent' as const, x: 0, y: 0, ref: 'chief', title: 'O', body: '' }
+  ]
+  const flowEdges = [
+    { id: 'e1', from: 't', to: 'a' },
+    { id: 'e2', from: 'a', to: 'b' }
+  ]
+
+  const order = walkOrder(flowNodes, flowEdges)
+  check('the walk starts from the trigger and follows the wires', order.map((n) => n.id).join(',') === 'a,b')
+  check('triggers and notes are not executed', !order.some((n) => n.kind === 'trigger' || n.kind === 'note'))
+  check('a node nothing points at never runs', !order.some((n) => n.id === 'orphan'))
+
+  // A cycle must stop the flow, not spin it.
+  const looped = walkOrder(flowNodes, [...flowEdges, { id: 'e3', from: 'b', to: 'a' }])
+  check('a cycle visits each node once and stops', looped.length === 2)
+
+  check(
+    'a node is fed by everything wired into it',
+    inputsFor('b', [...flowEdges, { id: 'e4', from: 't', to: 'b' }]).sort().join(',') === 'a,t'
+  )
+
+  // The drafted graph is checked against the real registries before it lands.
+  const drafted = parseFlow(`Here you go:
+\`\`\`json
+{"name":"Morning","nodes":[
+  {"id":"1","kind":"trigger","title":"8am"},
+  {"id":"2","kind":"agent","ref":"chief","title":"Plan","body":"Plan my day"},
+  {"id":"3","kind":"agent","ref":"not-a-real-agent","title":"Ghost","body":"x"},
+  {"id":"4","kind":"tool","ref":"review","title":"Read","body":"{}"}
+],"edges":[{"from":"1","to":"2"},{"from":"2","to":"3"},{"from":"3","to":"4"}]}
+\`\`\``)
+  check('a fenced reply still parses', drafted.name === 'Morning')
+  check('a hallucinated agent id is dropped', !drafted.nodes.some((n) => n.title === 'Ghost'))
+  check('real nodes survive', drafted.nodes.length === 3)
+  check(
+    'edges to dropped nodes are dropped with them',
+    drafted.edges.every((edge) =>
+      drafted.nodes.some((n) => n.id === edge.from) && drafted.nodes.some((n) => n.id === edge.to)
+    )
+  )
+  check('nodes are laid out on the grid', drafted.nodes.every((n) => n.x % 20 === 0 && n.y % 20 === 0))
+
+  const noTrigger = parseFlow('{"name":"X","nodes":[{"id":"1","kind":"agent","ref":"chief","title":"Do","body":"x"}],"edges":[]}')
+  check('a flow with no trigger gets one', noTrigger.nodes[0]?.kind === 'trigger')
+  check('an edgeless flow is chained in order', noTrigger.edges.length === noTrigger.nodes.length - 1)
 
   group('Icon motion')
 

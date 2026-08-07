@@ -13,7 +13,9 @@ import type {
   MeetingAttachment,
   Settings,
   Task,
-  Workflow
+  Workflow,
+  FlowNode,
+  FlowEdge
 } from '@shared/types'
 import { chat, generateBriefing } from './chat'
 import { cancelRun, onRunUpdate, settleApproval, startRun } from './agents/runtime'
@@ -47,6 +49,7 @@ import { PROVIDERS, SUBSCRIBABLE } from '@shared/providers'
 import { currentFocus } from './native/context'
 import { vault } from './vault'
 import { clearNotices, markAllRead } from './notices'
+import { draftFlow, paletteTools } from './flow'
 import { id, now, store } from './store'
 
 const broadcast = (event: AgentEvent): void => {
@@ -301,6 +304,13 @@ export const registerIpc = (): void => {
 
   /* ── Workflows ─────────────────────────────────────────────────────── */
 
+  handle<[string], { name: string; nodes: FlowNode[]; edges: FlowEdge[] }>(
+    'flow:draft',
+    (description) => draftFlow(description)
+  )
+
+  handle<[], { id: string; label: string; provider: string }[]>('flow:tools', () => paletteTools())
+
   handle<[Partial<Workflow>], AppState>('workflow:save', (patch) =>
     store.update((draft) => {
       if (patch.id) {
@@ -318,6 +328,8 @@ export const registerIpc = (): void => {
         trigger: patch.trigger ?? 'manual',
         schedule: patch.schedule ?? { hour: 8, minute: 0, days: [1, 2, 3, 4, 5] },
         steps: patch.steps ?? [],
+        nodes: patch.nodes ?? [],
+        edges: patch.edges ?? [],
         enabled: patch.enabled ?? true,
         lastRunAt: null,
         createdAt: now()

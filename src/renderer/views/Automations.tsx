@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import type { Workflow, WorkflowStep } from '@shared/types'
+import type { Workflow } from '@shared/types'
 import { api } from '../lib/api'
 import { useStore } from '../lib/state'
+import { FlowEditor } from './FlowEditor'
 import { Icon } from '../components/Icon'
-import { Empty, Field, Sheet, Switch, relative } from '../components/ui'
+import { Empty, Switch, relative } from '../components/ui'
 
-const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 const nextRun = (workflow: Workflow): string => {
   if (workflow.trigger !== 'schedule' || !workflow.enabled) return 'Manual only'
@@ -26,178 +26,6 @@ const nextRun = (workflow: Workflow): string => {
   return 'Not scheduled'
 }
 
-const Editor = ({ workflow, onClose }: { workflow: Workflow; onClose: () => void }): ReactNode => {
-  const { state, apply } = useStore()
-  const [draft, setDraft] = useState<Workflow>(workflow)
-
-  const patch = (next: Partial<Workflow>): void => setDraft((current) => ({ ...current, ...next }))
-
-  const patchStep = (index: number, next: Partial<WorkflowStep>): void =>
-    patch({
-      steps: draft.steps.map((step, position) =>
-        position === index ? { ...step, ...next } : step
-      )
-    })
-
-  const addStep = (): void =>
-    patch({
-      steps: [
-        ...draft.steps,
-        {
-          id: `${Date.now()}-${draft.steps.length}`,
-          agentId: state.agents[0]?.id ?? '',
-          instruction: '',
-          usePrevious: draft.steps.length > 0
-        }
-      ]
-    })
-
-  const time = `${String(draft.schedule.hour).padStart(2, '0')}:${String(draft.schedule.minute).padStart(2, '0')}`
-
-  return (
-    <Sheet
-      title={draft.name || 'New automation'}
-      onClose={onClose}
-      actions={
-        <>
-          {state.workflows.some((entry) => entry.id === draft.id) ? (
-            <button
-              className="btn danger"
-              onClick={async () => {
-                apply(await api.deleteWorkflow(draft.id))
-                onClose()
-              }}
-            >
-              Delete
-            </button>
-          ) : null}
-          <button className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="btn primary"
-            onClick={async () => {
-              apply(await api.saveWorkflow(draft))
-              onClose()
-            }}
-            disabled={draft.steps.length === 0 || !draft.name.trim()}
-          >
-            Save
-          </button>
-        </>
-      }
-    >
-      <Field label="Name">
-        <input
-          type="text"
-          value={draft.name}
-          placeholder="Morning brief"
-          onChange={(event) => patch({ name: event.target.value })}
-        />
-      </Field>
-
-      <Field label="Trigger">
-        <select
-          value={draft.trigger}
-          onChange={(event) => patch({ trigger: event.target.value as Workflow['trigger'] })}
-        >
-          <option value="manual">Run manually</option>
-          <option value="schedule">On a schedule</option>
-        </select>
-      </Field>
-
-      {draft.trigger === 'schedule' ? (
-        <>
-          <Field label="Time">
-            <input
-              type="time"
-              value={time}
-              onChange={(event) => {
-                const [hour, minute] = event.target.value.split(':')
-                patch({
-                  schedule: {
-                    ...draft.schedule,
-                    hour: Number(hour ?? 8),
-                    minute: Number(minute ?? 0)
-                  }
-                })
-              }}
-            />
-          </Field>
-          <Field label="Days">
-            <div className="row">
-              {DAYS.map((label, day) => (
-                <button
-                  key={day}
-                  className="tool-pick"
-                  data-on={draft.schedule.days.includes(day)}
-                  style={{ width: 36, justifyContent: 'center' }}
-                  onClick={() =>
-                    patch({
-                      schedule: {
-                        ...draft.schedule,
-                        days: draft.schedule.days.includes(day)
-                          ? draft.schedule.days.filter((entry) => entry !== day)
-                          : [...draft.schedule.days, day].sort()
-                      }
-                    })
-                  }
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </Field>
-        </>
-      ) : null}
-
-      <div className="section-title">Steps</div>
-      {draft.steps.map((step, index) => (
-        <div className="card stack tight" key={step.id}>
-          <div className="split">
-            <span className="tag accent">Step {index + 1}</span>
-            <button
-              className="icon-btn danger"
-              onClick={() => patch({ steps: draft.steps.filter((_, position) => position !== index) })}
-              aria-label="Remove step"
-            >
-              <Icon name="trash" size={14} />
-            </button>
-          </div>
-          <select value={step.agentId} onChange={(event) => patchStep(index, { agentId: event.target.value })}>
-            {state.agents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.name}
-              </option>
-            ))}
-          </select>
-          <textarea
-            rows={3}
-            value={step.instruction}
-            placeholder="What should this agent do?"
-            onChange={(event) => patchStep(index, { instruction: event.target.value })}
-          />
-          {index > 0 ? (
-            <div className="split">
-              <span className="muted">Pass the previous step's output in as context</span>
-              <Switch
-                on={step.usePrevious}
-                onChange={(value) => patchStep(index, { usePrevious: value })}
-                label="Use previous output"
-              />
-            </div>
-          ) : null}
-        </div>
-      ))}
-
-      <button className="btn" onClick={addStep}>
-        <Icon name="plus" size={14} />
-        Add step
-      </button>
-    </Sheet>
-  )
-}
-
 export const Automations = (): ReactNode => {
   const { state, apply } = useStore()
   const [editing, setEditing] = useState<Workflow | null>(null)
@@ -210,6 +38,8 @@ export const Automations = (): ReactNode => {
     trigger: 'schedule',
     schedule: { hour: 8, minute: 0, days: [1, 2, 3, 4, 5] },
     steps: [],
+    nodes: [],
+    edges: [],
     enabled: true,
     lastRunAt: null,
     createdAt: ''
@@ -220,6 +50,9 @@ export const Automations = (): ReactNode => {
     apply(await api.runWorkflow(workflow.id))
     setRunning(null)
   }
+
+  // The canvas owns the pane while it is open — a flow is a document.
+  if (editing) return <FlowEditor workflow={editing} onClose={() => setEditing(null)} />
 
   return (
     <>
@@ -336,7 +169,6 @@ export const Automations = (): ReactNode => {
         </div>
       </div>
 
-      {editing ? <Editor workflow={editing} onClose={() => setEditing(null)} /> : null}
     </>
   )
 }

@@ -12,7 +12,9 @@ import type {
   MeetingAttachment,
   Profile,
   Settings,
-  Workflow
+  Workflow,
+  FlowNode,
+  FlowEdge
 } from '@shared/types'
 
 export interface FishVoice {
@@ -73,6 +75,10 @@ const api = {
     ipcRenderer.invoke('workflow:save', patch),
   deleteWorkflow: (id: string): Promise<AppState> => ipcRenderer.invoke('workflow:delete', id),
   runWorkflow: (id: string): Promise<AppState> => ipcRenderer.invoke('workflow:run', id),
+  draftFlow: (description: string): Promise<{ name: string; nodes: FlowNode[]; edges: FlowEdge[] }> =>
+    ipcRenderer.invoke('flow:draft', description),
+  flowTools: (): Promise<{ id: string; label: string; provider: string }[]> =>
+    ipcRenderer.invoke('flow:tools'),
 
   // Boardroom
   boardMeta: (): Promise<BoardMeta> => ipcRenderer.invoke('board:meta'),
