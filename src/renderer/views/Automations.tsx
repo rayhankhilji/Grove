@@ -246,17 +246,8 @@ export const Automations = (): ReactNode => {
 
       <div className="scroll">
         <div className="body">
-          {!state.settings.automationsEnabled && state.workflows.length > 0 ? (
-            <div className="notice info">
-              Automations are paused. Scheduled runs will not fire until you switch them back on.
-            </div>
-          ) : null}
-
           {state.workflows.length === 0 ? (
-            <Empty icon="workflows" title="No automations yet.">
-              Chain your agents into something that runs without you — a morning brief at 7am, an
-              inbox sweep at 5pm, a Friday review that pulls the week's numbers.
-            </Empty>
+            <Empty icon="automations" title="No automations yet" />
           ) : (
             state.workflows.map((workflow) => (
               <div className="card" key={workflow.id}>

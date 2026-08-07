@@ -1,22 +1,24 @@
 /* ── Grove ────────────────────────────────────────────────────────────────
-   White and black. One neutral ramp, hairline borders, tight radii, and no
-   colour except where meaning demands it. Depth comes from a single shader
-   field and a very small amount of shadow — never from fills.
+   One surface, done properly: a tinted canvas, white panels floating on it,
+   hairline borders and a single blue. There is deliberately no dark theme —
+   two half-tuned palettes are worse than one that is right.
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
   --bg: #ffffff;
-  --bg-2: #fafafa;
-  --bg-3: #f4f4f5;
+  --bg-2: #f7f8fb;
+  --bg-3: #eef1f7;
+  /* The ground the app sits on, and the rail that shares it. */
+  --canvas: #e8edf7;
 
-  --fg: #09090b;
-  --fg-2: #52525b;
-  --fg-3: #a1a1aa;
-  --fg-4: #d4d4d8;
+  --fg: #0b0f19;
+  --fg-2: #4e5666;
+  --fg-3: #8b93a5;
+  --fg-4: #c3cad8;
 
-  --line: #ececef;
-  --line-2: #e0e0e4;
-  --line-3: #c9c9cf;
+  --line: #e9ecf3;
+  --line-2: #dde2ec;
+  --line-3: #c3cadb;
 
   --accent: #09090b;
   --accent-fg: #ffffff;
@@ -59,43 +61,6 @@
   --shadow-lg: 0 24px 64px -12px rgba(9, 9, 11, 0.22);
 }
 
-:root[data-theme='dark'] {
-  --bg: #09090b;
-  --bg-2: #0e0e11;
-  --bg-3: #17171a;
-
-  --fg: #fafafa;
-  --fg-2: #a1a1aa;
-  --fg-3: #71717a;
-  --fg-4: #3f3f46;
-
-  --line: #1c1c20;
-  --line-2: #26262b;
-  --line-3: #3a3a42;
-
-  --accent: #fafafa;
-  --accent-fg: #09090b;
-
-  --brand: #3b82f6;
-  --brand-hi: #60a5fa;
-  --brand-lo: #2563eb;
-  --brand-soft: rgba(59, 130, 246, 0.14);
-  --brand-line: rgba(59, 130, 246, 0.36);
-
-  --lift: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --lift-on: inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  --raise: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --raise-hi: 0 2px 6px rgba(0, 0, 0, 0.6);
-
-  --ok: #4ade80;
-  --warn: #fbbf24;
-  --bad: #f87171;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 24px 64px -12px rgba(0, 0, 0, 0.75);
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -109,6 +74,7 @@ body,
 }
 
 body {
+  background: var(--canvas);
   font-family: var(--sans);
   font-size: 13.5px;
   line-height: 1.55;
@@ -178,9 +144,11 @@ svg {
 
 .shell {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 232px 1fr;
   grid-template-rows: 100%;
   height: 100%;
+  background: var(--canvas);
+  padding: 0 8px 8px 0;
 }
 
 /* Grid items default to min-height:auto, which stops descendants from ever
@@ -196,9 +164,8 @@ svg {
   flex-direction: column;
   /* The top pad clears the traffic lights, so the wordmark can sit on the same
      left axis as every nav row instead of being pushed sideways past them. */
-  padding: 46px 10px 10px;
-  background: var(--bg-2);
-  border-right: 1px solid var(--line);
+  padding: 44px 10px 10px 14px;
+  background: transparent;
   -webkit-app-region: drag;
 }
 
@@ -217,18 +184,6 @@ svg {
   letter-spacing: -0.022em;
   color: var(--fg);
   line-height: 1;
-}
-
-/* One round full stop after the name — the only ornament in the chrome. */
-.wordmark h1::after {
-  content: '';
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  margin-left: 3px;
-  border-radius: 50%;
-  background: var(--brand);
-  vertical-align: baseline;
 }
 
 .side-scroll {
@@ -308,13 +263,16 @@ svg {
 
 .nav-item:hover {
   color: var(--fg);
-  background: var(--bg-3);
+  background: rgba(255, 255, 255, 0.5);
 }
 
+/* The current row lifts off the canvas onto its own white surface — the same
+   move the panel makes, one size down. */
 .nav-item[aria-current='true'] {
   color: var(--fg);
-  background: var(--bg-3);
+  background: var(--bg);
   font-weight: 580;
+  box-shadow: var(--raise);
 }
 
 /* The current view is marked by a rail on the left edge, which survives a
@@ -431,12 +389,23 @@ svg {
 
 /* ── Main pane ──────────────────────────────────────────────────────────── */
 
+/* The work surface. A panel with its own corners and shadow, so the window has
+   a foreground and a background instead of one flat plane. */
 .pane {
   display: flex;
   flex-direction: column;
   min-width: 0;
   background: var(--bg);
   position: relative;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(11, 15, 25, 0.04), 0 8px 24px -12px rgba(11, 15, 25, 0.12);
+}
+
+/* Corners have to be clipped or the topbar's own border squares them off. */
+.pane > .topbar:first-child,
+.pane > *:first-child > .topbar:first-child {
+  border-radius: 14px 14px 0 0;
 }
 
 .topbar {
@@ -847,25 +816,45 @@ select {
 
 .empty {
   text-align: center;
-  padding: 80px 24px;
+  padding: 72px 24px;
   color: var(--fg-3);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  position: relative;
+  gap: 10px;
 }
 
-.empty .halo {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--line-2);
-  background: var(--bg);
-  box-shadow: var(--shadow-sm);
+.empty h3 {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 540;
+  letter-spacing: -0.014em;
+  color: var(--fg-3);
+}
+
+/* The blank page before a conversation starts: a question, and the composer
+   below it. Nothing else earns the space. */
+.blank {
   display: grid;
   place-items: center;
+  min-height: 46vh;
+  padding: 24px;
+}
+
+.blank h2 {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
   color: var(--fg-2);
+}
+
+/* The mark stands on its own. A tinted rounded tile behind every icon was
+   the single most template-looking thing in the app. */
+.empty .halo {
+  display: grid;
+  place-items: center;
+  color: var(--fg-4);
 }
 
 .empty h3 {
@@ -1038,16 +1027,23 @@ select {
 .turn-user {
   display: flex;
   justify-content: flex-end;
+  padding: 4px 0;
 }
 
+/* What you said, in the brand colour, hugging the right edge. Tightening the
+   corner nearest the tail is what makes it read as a spoken turn rather than a
+   floating rectangle. */
 .turn-user .bubble {
-  max-width: 82%;
-  padding: 9px 14px;
-  border-radius: var(--r-xl);
-  background: var(--bg-3);
-  user-select: text;
-  font-size: 13.5px;
+  max-width: 80%;
+  padding: 10px 15px;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
   white-space: pre-wrap;
+  user-select: text;
+  box-shadow: var(--raise);
 }
 
 .turn-agent {
@@ -1737,9 +1733,9 @@ select {
 .stage {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 14px 20px;
   justify-content: center;
-  padding: 22px 28px;
+  padding: 16px 28px 14px;
   border-bottom: 1px solid var(--line);
   flex: none;
   position: relative;
@@ -2331,16 +2327,6 @@ select {
   box-shadow: var(--shadow-sm), 0 10px 24px -14px rgba(9, 9, 11, 0.25);
 }
 
-/* The empty state's halo picks up the brand rather than sitting grey. */
-.empty .halo {
-  border-color: var(--brand-line);
-  color: var(--brand);
-  background: var(--brand-soft);
-}
-
-.chip[data-on='true'] {
-  box-shadow: inset 0 -2px 0 var(--brand);
-}
 
 .section-title {
   display: flex;
@@ -2962,6 +2948,38 @@ select.inline {
   -webkit-app-region: no-drag;
 }
 
+/* A small stateful pill: date ranges, a run/pause toggle. Not a tab — tabs
+   switch what you are looking at, chips change how. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4.5px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--fg-2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 520;
+  white-space: nowrap;
+  box-shadow: var(--raise);
+  transition: color 0.12s var(--ease), background 0.12s var(--ease),
+    border-color 0.12s var(--ease);
+}
+
+.chip:hover {
+  color: var(--fg);
+  border-color: var(--line-3);
+}
+
+.chip[data-on='true'] {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: var(--bg);
+  box-shadow: none;
+}
+
 .tab {
   position: relative;
   padding: 5px 11px;
@@ -3018,4 +3036,128 @@ select.inline {
 .viewbar .sub {
   font-size: 12.5px;
   color: var(--fg-3);
+}
+
+/* The rail indicator was a bar in the gutter; on a floating row it belongs
+   inside it. */
+.nav-item::before {
+  left: 0;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── Boardroom stage ────────────────────────────────────────────────────── */
+
+.seat-tile {
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin: 0 auto;
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  box-shadow: var(--raise);
+  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease),
+    transform 0.2s var(--ease);
+}
+
+.seat[data-speaking='true'] .seat-tile {
+  border-color: var(--brand);
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px var(--brand-soft), var(--raise-hi);
+}
+
+.seat .initials {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--fg-2);
+}
+
+.seat[data-speaking='true'] .initials {
+  color: var(--fg);
+}
+
+/* One line per seat. The lens line under each name wrapped to three rows and
+   turned the stage into a wall of text; it lives in the transcript instead,
+   where every turn already carries it. */
+.seat-name {
+  width: 100%;
+  font-size: 12px;
+  font-weight: 550;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seat-role {
+  display: none;
+}
+
+.notice.stall {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notice.stall .btn {
+  margin-left: auto;
+}
+
+/* ── Answers ────────────────────────────────────────────────────────────────
+   The reply is set directly on the page. Only what you said is a bubble; the
+   answer is the document, and wrapping it in a card made every response look
+   like a notification.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.turn-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0 18px;
+}
+
+.turn-agent .prose {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 14.5px;
+}
+
+.stage ~ .scroll .turn-agent .prose {
+  font-size: 13.5px;
+  padding: 0;
+}
+
+.answer-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.answer-head .name {
+  font-weight: 600;
+  color: var(--fg);
+  font-size: 12.5px;
+}
+
+.answer-head .model {
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: var(--bg-3);
+  font-size: 11px;
+}
+
+.answer-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.turn-agent:hover .answer-actions {
+  opacity: 1;
 }

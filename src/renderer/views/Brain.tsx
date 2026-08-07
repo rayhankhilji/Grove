@@ -140,11 +140,6 @@ export const Brain = (): ReactNode => {
 
       <div className="scroll">
         <div className="body">
-          <div className="notice info">
-            Everything here is available to every agent and every boardroom seat. Explain something
-            once — your pricing, your positioning, last quarter's numbers — and you never retype it
-            into a prompt again. Pinned entries ride along in every conversation.
-          </div>
 
           {state.brain.length > 0 ? (
             <input
@@ -156,11 +151,7 @@ export const Brain = (): ReactNode => {
           ) : null}
 
           {state.brain.length === 0 ? (
-            <Empty icon="brain" title="Nothing filed yet.">
-              Add what you would otherwise explain over and over: what you sell, who buys it, what
-              you tried that failed, your numbers, your positioning. Import a doc or a deck and it
-              becomes context for everything.
-            </Empty>
+            <Empty icon="brain" title="Nothing filed yet" />
           ) : (
             visible.map((entry) => (
               <div className="card" key={entry.id}>

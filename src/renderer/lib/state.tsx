@@ -35,25 +35,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }): ReactNode 
     void reload()
   }, [reload])
 
-  // The theme lives on the root element so CSS custom properties can switch
-  // wholesale; 'system' defers to the OS via a media query.
-  useEffect(() => {
-    if (!state) return
-    const media = window.matchMedia('(prefers-color-scheme: light)')
-    const paint = (): void => {
-      const theme =
-        state.settings.theme === 'system'
-          ? media.matches
-            ? 'light'
-            : 'dark'
-          : state.settings.theme
-      document.documentElement.dataset['theme'] = theme
-    }
-    paint()
-    media.addEventListener('change', paint)
-    return () => media.removeEventListener('change', paint)
-  }, [state?.settings.theme])
-
   const value = useMemo<Store | null>(
     () =>
       state && keyStatus

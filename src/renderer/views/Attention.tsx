@@ -74,13 +74,6 @@ export const Attention = ({ embedded }: { embedded?: boolean } = {}): ReactNode 
 
       <div className="scroll">
         <div className="body">
-          {!state.settings.attentionEnabled ? (
-            <div className="notice info">
-              Recording is off. Grove cannot tell you where your time went while it is not watching
-              which app is frontmost.
-            </div>
-          ) : null}
-
           <div className="card">
             <div className="split">
               <div>
@@ -99,11 +92,7 @@ export const Attention = ({ embedded }: { embedded?: boolean } = {}): ReactNode 
           </div>
 
           {ranked.length === 0 ? (
-            <Empty icon="today" title="Nothing recorded yet.">
-              Grove samples which application is frontmost every 20 seconds while you are active. Give
-              it a little while, then come back — your agents can use this to check whether your hours
-              match your priorities.
-            </Empty>
+            <Empty icon="attention" title="Nothing recorded yet" />
           ) : (
             <>
               <div className="section-title">Where it went</div>

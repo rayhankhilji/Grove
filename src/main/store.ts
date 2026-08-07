@@ -26,7 +26,7 @@ const emptyState = (): AppState => ({
     model: DEFAULT_MODEL,
     effort: 'high',
     showThinking: true,
-    theme: 'light',
+    theme: 'light' as const,
     automationsEnabled: true,
     attentionEnabled: true,
     menuBarEnabled: true,

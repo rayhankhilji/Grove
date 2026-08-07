@@ -143,20 +143,6 @@ export const Settings = (): ReactNode => {
                   label="Attention ledger"
                 />
               </div>
-              <div className="toggle">
-                <span className="grow">Theme</span>
-                <select
-                  className="inline"
-                  value={state.settings.theme}
-                  onChange={(event) =>
-                    void set({ theme: event.target.value as SettingsShape['theme'] })
-                  }
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="system">System</option>
-                </select>
-              </div>
             </div>
           </section>
 

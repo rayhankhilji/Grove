@@ -156,11 +156,6 @@ const VoicePicker = ({ onClose }: { onClose: () => void }): ReactNode => {
         </button>
       }
     >
-      <div className="notice info">
-        Use voices you have the right to use — Fish's licensed marketplace voices, or models you
-        created yourself. Grove will not help you clone a real person's voice to put words in their
-        mouth, and the personas are always labelled as interpretations.
-      </div>
 
       <Field label="Seat">
         <select value={target} onChange={(event) => setTarget(event.target.value)}>

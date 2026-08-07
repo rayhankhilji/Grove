@@ -88,10 +88,7 @@ export const Objectives = ({ embedded }: { embedded?: boolean } = {}): ReactNode
       <div className="scroll">
         <div className="body">
           {visible.length === 0 ? (
-            <Empty icon="objectives" title={showClosed ? 'Nothing closed yet.' : 'No objectives.'}>
-              Objectives are set in conversation. Tell Grove what you are trying to achieve and it
-              will write them down with measurable key results.
-            </Empty>
+            <Empty icon="objectives" title="No objectives yet" />
           ) : (
             visible.map((objective) => (
               <div className="card" key={objective.id}>

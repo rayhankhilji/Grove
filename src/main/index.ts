@@ -53,8 +53,8 @@ app.whenReady().then(() => {
   vault.init()
   syncConnections()
 
-  const theme = store.get().settings.theme
-  nativeTheme.themeSource = theme === 'system' ? 'system' : theme
+  // Grove ships one appearance, so the window never follows the system.
+  nativeTheme.themeSource = 'light'
 
   registerIpc()
   createWindow()

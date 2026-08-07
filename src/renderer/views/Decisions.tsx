@@ -128,10 +128,7 @@ export const Decisions = ({ embedded }: { embedded?: boolean } = {}): ReactNode 
       <div className="scroll">
         <div className="body">
           {state.decisions.length === 0 ? (
-            <Empty icon="decisions" title="Nothing on the table.">
-              When you bring Grove something consequential it will lay out the real options and make
-              a call. Those land here so you can come back to the reasoning.
-            </Empty>
+            <Empty icon="decisions" title="Nothing to decide" />
           ) : null}
 
           {open.map((decision) => (

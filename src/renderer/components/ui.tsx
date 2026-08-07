@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { render } from '../lib/markdown'
 import { api } from '../lib/api'
 import { Icon, type IconName } from './Icon'
-import { Shader } from './Shader'
 
 export const Ring = ({ value, size = 34 }: { value: number; size?: number }): ReactNode => {
   const stroke = 3
@@ -28,22 +27,17 @@ export const Ring = ({ value, size = 34 }: { value: number; size?: number }): Re
   )
 }
 
-export const Empty = ({
-  icon,
-  title,
-  children
-}: {
-  icon: IconName
-  title: string
-  children: ReactNode
-}): ReactNode => (
+/**
+ * An empty state is a mark and a sentence fragment. There is no body slot:
+ * a paragraph explaining what a screen would contain if it had contents is
+ * something people skip, and it is what made every view feel like a template.
+ */
+export const Empty = ({ icon, title }: { icon: IconName; title: string }): ReactNode => (
   <div className="empty">
-    <Shader intensity={0.09} />
     <div className="halo">
-      <Icon name={icon} size={20} />
+      <Icon name={icon} size={26} />
     </div>
     <h3>{title}</h3>
-    <p>{children}</p>
   </div>
 )
 

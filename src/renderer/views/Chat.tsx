@@ -8,7 +8,7 @@ import { providerOfModel } from '@shared/providers'
 import { Icon } from '../components/Icon'
 import { BrandMark } from '../components/Brand'
 import { ModelPicker } from '../components/ModelPicker'
-import { Avatar, Empty, Popover, Prose } from '../components/ui'
+import { Avatar, Popover, Prose } from '../components/ui'
 
 const EFFORTS = [
   { id: 'low' as const, label: 'Low', note: 'Fast answers, shallow thinking.' },
@@ -263,12 +263,9 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
       <div className="scroll" ref={scroller} onScroll={onScroll}>
         <div className="thread">
           {conversation.messages.length === 0 && !streaming ? (
-            <Empty icon="chat" title={`${agent?.name ?? 'Your CEO'} is in.`}>
-              {agent?.role ?? 'Tell it what you are working on, what is stuck, or what you are deciding.'}
-              {connectedCount === 0
-                ? ' Connect your tools to let it act on your behalf, not just advise.'
-                : ''}
-            </Empty>
+            <div className="blank">
+              <h2>What do you need done?</h2>
+            </div>
           ) : null}
 
           {conversation.messages.map((message) =>

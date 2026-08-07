@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, nativeTheme, shell } from 'electron'
+import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type {
   Agent,
   AgentEvent,
@@ -73,7 +73,6 @@ export const registerIpc = (): void => {
     const state = store.update((draft) => {
       draft.settings = { ...draft.settings, ...patch }
     })
-    nativeTheme.themeSource = state.settings.theme
     syncTray()
     return state
   })

@@ -361,7 +361,8 @@ export interface Settings {
   model: string
   effort: 'low' | 'medium' | 'high'
   showThinking: boolean
-  theme: 'dark' | 'light' | 'system'
+  /** Retained so older saved state still parses. Grove has one appearance. */
+  theme: 'light'
   /** Automations only fire while this is on. */
   automationsEnabled: boolean
   /** Frontmost-app sampling for the attention ledger. Never captures pixels. */

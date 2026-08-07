@@ -202,6 +202,9 @@ export const interject = (meetingId: string, text: string): MeetingTurn | null =
   return turn
 }
 
+/** Raised when the room cannot continue — a missing key, a rate limit, a refusal. */
+export class MeetingStalled extends Error {}
+
 /**
  * Generates the next contribution, streaming it as it lands and then rendering
  * it to speech if a voice is mapped to that seat.
@@ -251,7 +254,12 @@ export const nextTurn = async (
         .trim()
     }
   } catch (error) {
-    turn.text = `[${persona.name} could not speak — ${describeLlmError(error)}]`
+    // A model that cannot answer will not answer for the next seat either.
+    // Recording the failure as a turn is what let one missing key spam the
+    // transcript with forty identical apologies, so the turn is discarded and
+    // the failure raised to the caller, which stops the call.
+    emit({ type: 'meeting.speaking', meetingId, speaker: null })
+    throw new MeetingStalled(describeLlmError(error))
   }
 
   store.update(() => {

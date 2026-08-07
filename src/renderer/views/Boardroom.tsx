@@ -27,11 +27,8 @@ const Seat = ({
 
   return (
     <div className="seat" data-speaking={speaking} style={{ width: size }}>
-      <div
-        className="seat-tile"
-        style={{ height: size * 0.72 }}
-      >
-        <span className="initials" style={{ fontSize: size * 0.24 }}>
+      <div className="seat-tile" style={{ width: size * 0.62, height: size * 0.62 }}>
+        <span className="initials" style={{ fontSize: size * 0.2 }}>
           {initials}
         </span>
         {speaking ? (
@@ -234,6 +231,7 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
   const [draft, setDraft] = useState('')
   const [auto, setAuto] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [stalled, setStalled] = useState<string | null>(null)
   const scroller = useRef<HTMLDivElement>(null)
   const audio = useRef<HTMLAudioElement | null>(null)
 
@@ -271,17 +269,29 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
     [meeting.id, apply]
   )
 
-  // Drive the conversation forward while auto-run is on.
+  /**
+   * Drive the conversation forward while auto-run is on.
+   *
+   * The first failure stops the room. A model that cannot answer for one seat
+   * will not answer for the next either, and letting the loop continue is what
+   * filled a transcript with forty identical apologies.
+   */
   useEffect(() => {
-    if (!auto || busy || meeting.status === 'ended') return
+    if (!auto || busy || stalled || meeting.status === 'ended') return
     const timer = setTimeout(async () => {
       setBusy(true)
-      apply(await api.nextTurn(meeting.id))
-      setLive({})
-      setBusy(false)
+      try {
+        apply(await api.nextTurn(meeting.id))
+        setLive({})
+      } catch (error) {
+        setAuto(false)
+        setStalled((error as Error).message.replace(/^Error invoking remote method '[^']+': /, ''))
+      } finally {
+        setBusy(false)
+      }
     }, 700)
     return () => clearTimeout(timer)
-  }, [auto, busy, meeting.turns.length, meeting.status, meeting.id, apply])
+  }, [auto, busy, stalled, meeting.turns.length, meeting.status, meeting.id, apply])
 
   useLayoutEffect(() => {
     const node = scroller.current
@@ -324,8 +334,14 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
               disabled={busy}
               onClick={async () => {
                 setBusy(true)
-                apply(await api.nextTurn(meeting.id))
-                setBusy(false)
+                setStalled(null)
+                try {
+                  apply(await api.nextTurn(meeting.id))
+                } catch (error) {
+                  setStalled((error as Error).message.replace(/^Error invoking remote method '[^']+': /, ''))
+                } finally {
+                  setBusy(false)
+                }
               }}
             >
               Next turn
@@ -350,6 +366,15 @@ const Call = ({ meeting, onLeave }: { meeting: Meeting; onLeave: () => void }): 
 
       <div className="scroll" ref={scroller}>
         <div className="thread" style={{ paddingTop: 14 }}>
+          {stalled ? (
+            <div className="notice stall">
+              <strong>The room stopped.</strong>
+              {stalled}
+              <button className="btn tiny" onClick={() => setStalled(null)}>
+                Try again
+              </button>
+            </div>
+          ) : null}
           {meeting.turns.map((turn: MeetingTurn) => {
             const persona = personaFor(turn.speaker)
             return turn.speaker === 'you' ? (
@@ -463,10 +488,7 @@ export const Boardroom = (): ReactNode => {
       <div className="scroll">
         <div className="body">
           {state.meetings.length === 0 ? (
-            <Empty icon="chat" title="No calls yet.">
-              Put a bench of advisers in a room, hand them your deck or your numbers, and let them
-              argue. You can cut in at any point. Minutes and decisions land back in your workspace.
-            </Empty>
+            <Empty icon="boardroom" title="No calls yet" />
           ) : (
             state.meetings.map((meeting) => (
               <div className="card" key={meeting.id}>

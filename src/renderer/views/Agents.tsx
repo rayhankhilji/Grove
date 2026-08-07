@@ -473,16 +473,12 @@ export const Agents = (): ReactNode => {
     <>
       <div className="topbar">
         <h2>Agents</h2>
-        <div className="row" style={{ marginLeft: 8 }}>
-          <button
-            className={`chip${tab === 'team' ? '' : ''}`}
-            data-on={tab === 'team'}
-            onClick={() => setTab('team')}
-          >
-            Team · {state.agents.length}
+        <div className="tabs">
+          <button className="tab" data-on={tab === 'team'} onClick={() => setTab('team')}>
+            Team
           </button>
-          <button className="chip" data-on={tab === 'activity'} onClick={() => setTab('activity')}>
-            Activity{active > 0 ? ` · ${active} live` : ''}
+          <button className="tab" data-on={tab === 'activity'} onClick={() => setTab('activity')}>
+            Activity{active > 0 ? ` · ${active}` : ''}
           </button>
         </div>
         <div className="spacer" />
@@ -550,10 +546,7 @@ export const Agents = (): ReactNode => {
               ))}
             </div>
           ) : state.runs.length === 0 ? (
-            <Empty icon="bolt" title="No runs yet.">
-              Launch an agent, or let an automation fire one. Every run lands here with its full
-              timeline — the tools it called and what came back.
-            </Empty>
+            <Empty icon="bolt" title="No runs yet" />
           ) : (
             <div className="card flush">
               {state.runs.map((run) => (

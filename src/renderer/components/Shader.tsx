@@ -138,11 +138,10 @@ export const Shader = ({ intensity = 0.06 }: { intensity?: number }): ReactNode 
     let frame = 0
 
     const draw = (): void => {
-      const isDark = document.documentElement.dataset['theme'] === 'dark'
       gl.uniform2f(uniforms.resolution, node.width, node.height)
       gl.uniform1f(uniforms.time, reduced ? 0 : (performance.now() - start) / 1000)
-      gl.uniform1f(uniforms.dark, isDark ? 1 : 0)
-      gl.uniform1f(uniforms.intensity, isDark ? intensity * 1.6 : intensity)
+      gl.uniform1f(uniforms.dark, 0)
+      gl.uniform1f(uniforms.intensity, intensity)
       gl.drawArrays(gl.TRIANGLES, 0, 3)
       // A still field needs one frame, not sixty.
       if (!reduced) frame = requestAnimationFrame(draw)
