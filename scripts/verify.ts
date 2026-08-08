@@ -325,6 +325,28 @@ const main = async (): Promise<void> => {
   check('a flow with no trigger gets one', noTrigger.nodes[0]?.kind === 'trigger')
   check('an edgeless flow is chained in order', noTrigger.edges.length === noTrigger.nodes.length - 1)
 
+  group('Brand marks')
+
+  // Every connector and provider has to resolve to a mark. A missing one is
+  // not a crash — it silently degrades to a monogram, which is exactly the
+  // kind of regression nobody notices until a row of logos looks wrong.
+  const brandSource = readFileSync(join(process.cwd(), 'src/renderer/components/Brand.tsx'), 'utf8')
+  const marked = new Set([
+    ...[...brandSource.matchAll(/^  (\w+): si\w+,?$/gm)].map((m) => m[1]!),
+    ...[...brandSource.matchAll(/^  (\w+): \(size\)/gm)].map((m) => m[1]!)
+  ])
+
+  check(
+    'every connector has a real mark',
+    CONNECTORS.every((connector) => marked.has(connector.id)),
+    CONNECTORS.filter((connector) => !marked.has(connector.id)).map((c) => c.id).join(', ')
+  )
+  check(
+    'every model provider has a real mark',
+    PROVIDERS.every((provider) => marked.has(provider.id)),
+    PROVIDERS.filter((provider) => !marked.has(provider.id)).map((p) => p.id).join(', ')
+  )
+
   group('Icon motion')
 
   // The automations token rides a CSS motion path that has to be the same

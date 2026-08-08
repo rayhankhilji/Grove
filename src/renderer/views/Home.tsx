@@ -220,66 +220,112 @@ export const Home = ({ onGo, onStartChat }: HomeProps): ReactNode => {
           ) : null}
 
           {/* ── Today ─────────────────────────────────────────────────── */}
-          <section className="block">
-            <div className="block-head">
-              <h3>Today</h3>
-            </div>
-
-            {briefing ? (
+          {briefing ? (
+            <section className="block">
+              <div className="block-head">
+                <h3>Your briefing</h3>
+                <span className="counter">{relative(briefing.generatedAt)}</span>
+              </div>
               <div className="card">
                 <Prose markdown={briefing.body} />
               </div>
-            ) : null}
+            </section>
+          ) : null}
 
-            <div className="task-add">
-              <input
-                type="text"
-                value={newTask}
-                placeholder="Add a task"
-                onChange={(event) => setNewTask(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') void addTask()
-                }}
-              />
-              <button className="btn" onClick={() => void addTask()} disabled={!newTask.trim()}>
-                Add
+          {/*
+            Four things worth doing from here, so the screen is a place you act
+            from rather than a report you read. Each one opens where the work
+            actually happens.
+          */}
+          <section className="block">
+            <div className="block-head">
+              <h3>Jump in</h3>
+            </div>
+            <div className="quick-grid">
+              <button className="quick" onClick={onStartChat}>
+                <span className="quick-mark">
+                  <Icon name="chat" size={17} />
+                </span>
+                <span className="quick-name">Ask Grove</span>
+                <span className="quick-meta">{state.agents.length} agents</span>
+              </button>
+              <button className="quick" onClick={() => onGo('boardroom')}>
+                <span className="quick-mark">
+                  <Icon name="boardroom" size={17} />
+                </span>
+                <span className="quick-name">Convene a room</span>
+                <span className="quick-meta">{state.meetings.length} held</span>
+              </button>
+              <button className="quick" onClick={() => onGo('automations')}>
+                <span className="quick-mark">
+                  <Icon name="automations" size={17} />
+                </span>
+                <span className="quick-name">Automate something</span>
+                <span className="quick-meta">{state.workflows.length} running</span>
+              </button>
+              <button className="quick" onClick={() => onGo('knowledge')}>
+                <span className="quick-mark">
+                  <Icon name="brain" size={17} />
+                </span>
+                <span className="quick-name">Teach it something</span>
+                <span className="quick-meta">{state.brain.length} entries</span>
               </button>
             </div>
+          </section>
 
-            {open.length === 0 ? (
-              <p className="quiet">Nothing open.</p>
-            ) : (
-              (['now', 'next', 'later'] as Horizon[]).map((horizon) => {
+          {/* ── Tasks ─────────────────────────────────────────────────── */}
+          <section className="block">
+            <div className="block-head">
+              <h3>Tasks</h3>
+              {open.length > 0 ? <span className="counter">{open.length} open</span> : null}
+            </div>
+
+            <div className="task-list">
+              <div className="task-new">
+                <span className="box ghost">
+                  <Icon name="plus" size={12} strokeWidth={2.4} />
+                </span>
+                <input
+                  type="text"
+                  value={newTask}
+                  placeholder="What needs doing?"
+                  onChange={(event) => setNewTask(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') void addTask()
+                  }}
+                />
+                {newTask.trim() ? (
+                  <button className="btn tiny primary" onClick={() => void addTask()}>
+                    Add
+                  </button>
+                ) : null}
+              </div>
+
+              {(['now', 'next', 'later'] as Horizon[]).map((horizon) => {
                 const bucket = open.filter((task) => task.horizon === horizon)
                 if (bucket.length === 0) return null
-                return (
-                  <div className="bucket" key={horizon}>
-                    <div className="bucket-label">{HORIZON[horizon]}</div>
-                    <div className="list">
-                      {bucket.map((task) => (
-                        <div className="task" key={task.id}>
-                          <button
-                            className="box"
-                            onClick={async () => apply(await api.toggleTask(task.id))}
-                            aria-label="Complete task"
-                          >
-                            <Icon name="check" size={11} strokeWidth={2.6} />
-                          </button>
-                          <span className="grow">{task.title}</span>
-                          <button
-                            className="icon-btn"
-                            onClick={async () => apply(await api.deleteTask(task.id))}
-                            aria-label="Delete task"
-                          >
-                            <Icon name="close" size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                return bucket.map((task) => (
+                  <div className="task" key={task.id}>
+                    <button
+                      className="box"
+                      onClick={async () => apply(await api.toggleTask(task.id))}
+                      aria-label="Complete task"
+                    >
+                      <Icon name="check" size={11} strokeWidth={2.6} />
+                    </button>
+                    <span className="grow">{task.title}</span>
+                    <span className="horizon">{HORIZON[horizon]}</span>
+                    <button
+                      className="icon-btn"
+                      onClick={async () => apply(await api.deleteTask(task.id))}
+                      aria-label="Delete task"
+                    >
+                      <Icon name="close" size={14} />
+                    </button>
                   </div>
-                )
-              })
-            )}
+                ))
+              })}
+            </div>
           </section>
 
           {/* ── What is moving ────────────────────────────────────────── */}

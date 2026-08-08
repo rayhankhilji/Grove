@@ -352,13 +352,13 @@ export const Chat = ({
               {text ? (
                 <Prose markdown={text} />
               ) : (
-                <div className="row">
-                  <span className="thinking-dots">
+                <div className="working">
+                  <span className="orbit">
                     <i />
                     <i />
                     <i />
                   </span>
-                  <span className="thinking-label">
+                  <span className="shimmer">
                     {calls.length > 0 ? describe(calls[calls.length - 1]!) : 'Thinking'}
                   </span>
                 </div>

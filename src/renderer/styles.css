@@ -3241,18 +3241,33 @@ select.inline {
 
 /* Fixed, not absolute: the rail clips its own overflow, which cut the panel
    in half. Anchored to the viewport it escapes cleanly. */
+/*
+ * The ring is the canvas colour, so the panel reads as sitting *above* the app
+ * rather than on top of the sidebar — a border alone left it looking wedged
+ * into the rail it was covering.
+ */
 .notices {
   position: fixed;
-  top: 74px;
-  left: 14px;
-  width: 330px;
+  top: 70px;
+  left: 16px;
+  width: 336px;
   z-index: 45;
-  border: 1px solid var(--line-2);
-  border-radius: var(--r-lg);
+  border-radius: 18px;
   background: var(--bg);
-  box-shadow: var(--shadow);
   overflow: hidden;
   -webkit-app-region: no-drag;
+  box-shadow:
+    0 0 0 7px var(--canvas),
+    0 0 0 8px rgba(15, 23, 42, 0.09),
+    var(--shadow-lg);
+  animation: notices-in 0.18s var(--ease);
+}
+
+@keyframes notices-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
 }
 
 .notices-head {
@@ -4168,55 +4183,239 @@ textarea.mono {
   color: var(--fg-3);
 }
 
-/* ── Thinking ───────────────────────────────────────────────────────────────
-   While a turn is in flight the reply area shows the agent's name and three
-   settling dots, so an empty gap never reads as a hang.
+
+
+/* ── Working ────────────────────────────────────────────────────────────────
+   What the agent is doing, while it does it. Two parts: three points tracing a
+   circle, and the label itself lit by a gradient sweeping across the glyphs —
+   the text is the animation rather than something bolted next to it.
    ───────────────────────────────────────────────────────────────────────── */
 
-.thinking-dots {
+.working {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 0;
+  gap: 11px;
+  padding: 8px 0;
 }
 
-.thinking-dots i {
-  width: 6px;
-  height: 6px;
+.orbit {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* Each point sits on the rim and the whole ring turns, so the motion is one
+   rotation rather than three independently animated dots pretending to be a
+   circle. The scale pulse is offset per point to give it a leading edge. */
+.orbit i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
   border-radius: 50%;
-  background: var(--fg-4);
-  animation: settle 1.25s var(--ease) infinite;
+  background: var(--brand);
+  animation: orbit 1.5s linear infinite, twinkle 1.5s ease-in-out infinite;
 }
 
-.thinking-dots i:nth-child(2) {
-  animation-delay: 0.16s;
+.orbit i:nth-child(2) {
+  animation-delay: -0.5s;
 }
-.thinking-dots i:nth-child(3) {
-  animation-delay: 0.32s;
+.orbit i:nth-child(3) {
+  animation-delay: -1s;
 }
 
-@keyframes settle {
+@keyframes orbit {
+  from {
+    transform: rotate(0deg) translateX(6.5px);
+  }
+  to {
+    transform: rotate(360deg) translateX(6.5px);
+  }
+}
+
+@keyframes twinkle {
   0%,
-  60%,
   100% {
-    transform: translateY(0);
-    background: var(--fg-4);
+    opacity: 0.35;
   }
-  30% {
-    transform: translateY(-4px);
-    background: var(--brand);
+  40% {
+    opacity: 1;
   }
 }
 
-/* The word that says what it is doing right now, keyed off the live tool. */
-.thinking-label {
-  font-size: 12.5px;
+/*
+ * The label is painted by a moving gradient clipped to the text. Background-clip
+ * on a wide gradient is the only way to light individual letters in sequence —
+ * animating colour would flash the whole word at once.
+ */
+.shimmer {
+  font-size: 13px;
+  font-weight: 500;
+  background: linear-gradient(
+    100deg,
+    var(--fg-3) 20%,
+    var(--brand) 38%,
+    var(--brand-hi) 50%,
+    var(--brand) 62%,
+    var(--fg-3) 80%
+  );
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweep 2.4s linear infinite;
+}
+
+@keyframes sweep {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit i,
+  .shimmer {
+    animation: none;
+  }
+  .shimmer {
+    color: var(--fg-3);
+  }
+}
+
+/* ── Home ───────────────────────────────────────────────────────────────────
+   Four ways in, then your tasks. The old page opened with a bare text field
+   and the word "Add", which told you nothing about what the app was for.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.quick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--bg), var(--bg-2));
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--raise), var(--lift);
+  transition: transform 0.14s var(--ease), box-shadow 0.14s var(--ease),
+    border-color 0.14s var(--ease);
+}
+
+.quick:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-line);
+  box-shadow: var(--raise-hi), var(--lift);
+}
+
+.quick:active {
+  transform: translateY(0);
+  box-shadow: var(--raise);
+}
+
+.quick-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  transition: background 0.14s var(--ease);
+}
+
+.quick:hover .quick-mark {
+  background: var(--brand);
+  color: #fff;
+}
+
+.quick-name {
+  font-size: 13.5px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+.quick-meta {
+  font-size: 11.5px;
   color: var(--fg-3);
-  animation: breathe 2.2s ease-in-out infinite;
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes breathe {
-  50% {
-    opacity: 0.45;
-  }
+/* ── Tasks ──────────────────────────────────────────────────────────────── */
+
+.task-list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.task-list > * + * {
+  border-top: 1px solid var(--line);
+}
+
+/* The composer is the first row of the list, not a form above it — which is
+   what stops it reading as a stray input with an Add button beside it. */
+.task-new {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 4px 12px 4px 14px;
+  background: var(--bg-2);
+}
+
+.task-new input {
+  flex: 1;
+  border: none;
+  background: none;
+  box-shadow: none;
+  padding: 10px 0;
+  font-size: 13px;
+}
+
+.task-new input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.task-new .box.ghost {
+  border-style: dashed;
+  color: var(--fg-4);
+  cursor: default;
+}
+
+.task {
+  padding: 10px 12px 10px 14px;
+}
+
+.task .horizon {
+  font-size: 11px;
+  font-weight: 540;
+  color: var(--fg-3);
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: var(--bg-3);
+  white-space: nowrap;
+  flex: none;
+}
+
+.task .box:hover {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
 }

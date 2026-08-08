@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
-    "lucide-react": "^1.28.0"
+    "lucide-react": "^1.28.0",
+    "simple-icons": "^16.28.0"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
