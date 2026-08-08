@@ -24,6 +24,12 @@ export interface TurnRequest {
   effort: 'low' | 'medium' | 'high'
   showThinking?: boolean
   onText?: (chunk: string) => void
+  /**
+   * Only fires on the plan path, where the CLI owns the tool loop and calls
+   * are otherwise invisible to us. The API path reports them through the
+   * agent runtime instead.
+   */
+  onTool?: (name: string, input: Record<string, unknown>) => void
   onThinking?: (chunk: string) => void
   signal?: AbortSignal
 }
@@ -66,6 +72,7 @@ export const runTurn = async (request: TurnRequest): Promise<TurnResult> => {
       tools: request.tools,
       effort: request.effort,
       ...(request.onText ? { onText: request.onText } : {}),
+      ...(request.onTool ? { onTool: request.onTool } : {}),
       ...(request.signal ? { signal: request.signal } : {})
     })
     return {

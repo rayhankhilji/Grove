@@ -5,6 +5,13 @@ import { join } from 'node:path'
 import type Anthropic from '@anthropic-ai/sdk'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages'
 import type { ProviderSpec, SubscriptionSpec } from '@shared/providers'
+import { mcpBridge, setTools, type McpHandle } from './mcp'
+
+/**
+ * Claude Code prefixes MCP tools with the server name, so the model needs to
+ * know what its own tools are actually called before it goes looking for them.
+ */
+const MCP_NOTE = `Your tools are provided by the "grove" MCP server and appear as \`mcp__grove__<name>\`. They are real — call them directly. Never say a tool is unavailable without having called it and seen it fail.`
 
 /**
  * Subscription-backed generation.
@@ -14,11 +21,10 @@ import type { ProviderSpec, SubscriptionSpec } from '@shared/providers'
  * for. Grove never sees, stores or transmits the login: it hands the CLI a
  * prompt and reads the answer back over a pipe.
  *
- * The trade this makes is tool calling. Neither CLI will surface a structured
- * function call to a caller, so tools are expressed as a text protocol and
- * parsed out of the reply. Frontier models follow it reliably; the API-key path
- * still uses real native tool calls and remains the better option for long
- * autonomous runs.
+ * Tool calling differs by CLI. Claude Code speaks MCP, so Grove registers its
+ * tools properly over the loopback and the model calls them natively — see
+ * ./mcp.ts for why the first attempt at a text protocol was wrong. Codex has no
+ * equivalent, so it keeps the text protocol below.
  */
 
 /* ── Finding the executable ──────────────────────────────────────────────── */
@@ -256,7 +262,9 @@ const runClaude = async (
   system: string,
   prompt: string,
   effort: string,
+  mcp: McpHandle,
   onText: ((chunk: string) => void) | undefined,
+  onTool: ((name: string, input: Record<string, unknown>) => void) | undefined,
   signal?: AbortSignal
 ): Promise<CliRun> => {
   let text = ''
@@ -293,8 +301,21 @@ const runClaude = async (
       '--verbose',
       // Grove supplies its own tools through the text protocol; Claude Code's
       // own file and shell tools have no business in this process.
+      // Grove's tools arrive over MCP; Claude Code's own file and shell tools
+      // have no business in this process, and leaving them on gave the model a
+      // second, wrong way to call things.
       '--disallowedTools',
       'Bash Edit Write Read Glob Grep WebFetch WebSearch Task TodoWrite NotebookEdit',
+      '--allowedTools',
+      'mcp__grove',
+      '--mcp-config',
+      JSON.stringify({
+        mcpServers: {
+          grove: { type: 'http', url: mcp.url, headers: { Authorization: `Bearer ${mcp.token}` } }
+        }
+      }),
+      '--permission-mode',
+      'bypassPermissions',
       '--strict-mcp-config',
       '--settings',
       JSON.stringify({ disableAllHooks: true })
@@ -314,6 +335,17 @@ const runClaude = async (
           emit(String(inner['delta']['text']))
         }
         return
+      }
+
+      // Claude Code owns the loop under MCP, so tool calls only ever appear
+      // here. Without lifting them out the activity trail would be empty on a
+      // plan, and the user could not see what the agent actually did.
+      if (event['type'] === 'assistant') {
+        for (const block of (event['message']?.['content'] ?? []) as Record<string, any>[]) {
+          if (block['type'] === 'tool_use') {
+            onTool?.(String(block['name']), (block['input'] ?? {}) as Record<string, unknown>)
+          }
+        }
       }
 
       if (event['type'] === 'result') {
@@ -428,6 +460,7 @@ export const runSubscriptionTurn = async (
     tools: Anthropic.Tool[]
     effort: 'low' | 'medium' | 'high'
     onText?: (chunk: string) => void
+    onTool?: (name: string, input: Record<string, unknown>) => void
     signal?: AbortSignal
   }
 ): Promise<CliTurn> => {
@@ -436,16 +469,35 @@ export const runSubscriptionTurn = async (
   const path = resolveCommand(spec.command)
   if (!path) throw new SubscriptionUnavailable(spec)
 
-  const system = options.tools.length
-    ? `${options.system}\n${toolProtocol(options.tools)}`
-    : options.system
-
   const prompt = flatten(options.messages)
 
-  const result =
-    spec.command === 'claude'
-      ? await runClaude(path, options.model, system, prompt, options.effort, options.onText, options.signal)
-      : await runCodex(path, options.model, system, prompt, options.onText, options.signal)
+  if (spec.command === 'claude') {
+    // Real tool registration, not a text protocol. The tools are scoped to this
+    // turn, so an agent never sees a teammate's permissions.
+    const mcp = await mcpBridge()
+    setTools(options.tools)
+    const result = await runClaude(
+      path,
+      options.model,
+      options.tools.length ? `${options.system}\n\n${MCP_NOTE}` : options.system,
+      prompt,
+      options.effort,
+      mcp,
+      options.onText,
+      options.onTool,
+      options.signal
+    )
+    return parseReply(result)
+  }
+
+  const result = await runCodex(
+    path,
+    options.model,
+    options.tools.length ? `${options.system}\n${toolProtocol(options.tools)}` : options.system,
+    prompt,
+    options.onText,
+    options.signal
+  )
 
   return parseReply(result)
 }

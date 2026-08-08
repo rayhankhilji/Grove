@@ -1,7 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { Agent, AppState, Run, RunStep, ToolCall } from '@shared/types'
 import { HOUSE_RULES } from '@shared/agents'
-import { snapshot, definitionsFor, runToolByWireName, toolsForAgent, type ToolDef } from '../tools'
+import { snapshot, definitionsFor, runToolByWireName, toolById, toolsForAgent, type ToolDef } from '../tools'
 import { describeLlmError, runTurn } from '../llm'
 import { context as brainContext } from '../brain'
 import { id, now, store } from '../store'
@@ -149,6 +149,19 @@ export const execute = async (
       maxTokens: MAX_TOKENS,
       effort: agent.effort,
       showThinking: store.get().settings.showThinking,
+      // On a plan the CLI runs the loop, so its calls arrive here rather than
+      // through the tool_use branch below. Recording them keeps the trail
+      // honest about what actually ran.
+      onTool: (name, input) => {
+        const tool = toolById(name.replace(/^mcp__grove__/, '').replace(/__/g, '.'))
+        hooks.onTool?.({
+          id: `${name}-${Date.now()}`,
+          name: tool?.id ?? name,
+          input,
+          result: '',
+          isError: false
+        })
+      },
       onText: (chunk) => {
         text += chunk
         hooks.onText?.(chunk)
