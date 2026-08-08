@@ -28,6 +28,7 @@ import {
 } from './native/apple'
 import { attentionReport, currentFocus } from './native/context'
 import { brainTools } from './brain'
+import { push } from './notices'
 import { vault } from './vault'
 import { id, now, store } from './store'
 
@@ -484,6 +485,10 @@ const workspaceTools: ToolDef[] = [
       store.update((s) => {
         s.agents.push(agent)
       })
+
+      // The agent may have been built during a long background run, so the
+      // notification centre is how it gets noticed rather than scrolled past.
+      push('run', `${agent.name} is ready`, `${agent.role} · ${agent.toolIds.length} tools.`, 'agents')
 
       return [
         `Created "${agent.name}" — it is live in Agents now and can be launched.`,

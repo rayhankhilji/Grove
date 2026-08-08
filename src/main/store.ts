@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { join } from 'node:path'
 import type { AppState } from '@shared/types'
 import { DEFAULT_MODEL, WORKER_MODEL } from '@shared/providers'
-import { BUILT_IN_AGENTS } from './agents/defaults'
+import { BUILT_IN_AGENTS, CORE_GRANTS } from './agents/defaults'
 
 const emptyState = (): AppState => ({
   profile: { name: '', role: '', venture: '', mission: '', operatingStyle: '' },
@@ -85,6 +85,15 @@ class Store {
           existing.handoffIds = builtIn.handoffIds
           existing.instructions = builtIn.instructions
         }
+      }
+
+      // Core capabilities reach every agent, customised or not. Gating this on
+      // "untouched" meant changing a model in the composer bumped updatedAt and
+      // permanently opted that agent out of ever gaining a new capability —
+      // which stranded the one agent people actually use.
+      for (const agent of merged.agents) {
+        const missing = CORE_GRANTS.filter((grant) => !agent.toolIds.includes(grant))
+        if (missing.length > 0) agent.toolIds = [...agent.toolIds, ...missing]
       }
       return merged
     } catch {

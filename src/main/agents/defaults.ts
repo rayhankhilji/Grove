@@ -1,6 +1,23 @@
 import type { Agent } from '@shared/types'
 import { DEFAULT_MODEL } from '@shared/models'
 
+/**
+ * Capabilities every agent has, always.
+ *
+ * These are not preferences — they are what makes an agent an agent in Grove:
+ * it can read the workspace, remember, ask for an app it needs, and build a
+ * teammate. They are unioned into every agent on load, so shipping a new one
+ * reaches agents the user has already customised. Anything gated behind
+ * "untouched" silently strands the agent people actually use.
+ */
+export const CORE_GRANTS = [
+  'review',
+  'remember',
+  'brain_search',
+  'create_agent',
+  'request_connection'
+]
+
 export const WORKSPACE_GRANTS = [
   'review',
   'set_objective',

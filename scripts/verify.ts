@@ -14,7 +14,7 @@ import { HOUSE_RULES } from '../src/shared/agents'
 import { ALL_MODELS, PROVIDERS, SUBSCRIBABLE, providerOfModel } from '../src/shared/providers'
 import { BENCHES, MEETING_KINDS } from '../src/main/boardroom'
 import { MODELS } from '../src/shared/models'
-import { BUILT_IN_AGENTS } from '../src/main/agents/defaults'
+import { BUILT_IN_AGENTS, CORE_GRANTS } from '../src/main/agents/defaults'
 import { store } from '../src/main/store'
 import { addEntry, context as brainContext, search as brainSearch, updateEntry } from '../src/main/brain'
 import { vault } from '../src/main/vault'
@@ -271,6 +271,34 @@ const main = async (): Promise<void> => {
   check('asking for an app emits the card marker', ask.result.startsWith('CONNECT_REQUEST:microsoft'))
   const bogus = await runTool('request_connection', { provider: 'nope', reason: 'x' })
   check('asking for an app Grove has no connector for says so', bogus.result.includes('no connector'))
+
+  // The bug this pins down: customising an agent bumped updatedAt, which opted
+  // it out of the refresh that hands out new capabilities. A user who changed
+  // their chief of staff's model lost the ability to ever gain create_agent.
+  const customised = {
+    ...BUILT_IN_AGENTS()[0]!,
+    toolIds: ['review', 'add_task'],
+    updatedAt: new Date().toISOString()
+  }
+  store.update((draft) => {
+    draft.agents = [customised, ...draft.agents.filter((a) => a.id !== customised.id)]
+  })
+  store.flush()
+  store.init()
+  const reloaded = store.get().agents.find((a) => a.id === customised.id)!
+  check(
+    'a customised agent still gains new core capabilities',
+    CORE_GRANTS.every((grant) => reloaded.toolIds.includes(grant)),
+    CORE_GRANTS.filter((grant) => !reloaded.toolIds.includes(grant)).join(', ')
+  )
+  check(
+    'and keeps the tools it was customised with',
+    reloaded.toolIds.includes('add_task')
+  )
+  check(
+    'house rules forbid guessing that a tool is missing',
+    /isn't in this build|is genuinely absent/.test(HOUSE_RULES)
+  )
 
   group('Flow graph')
 
