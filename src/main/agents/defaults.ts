@@ -15,7 +15,10 @@ export const CORE_GRANTS = [
   'remember',
   'brain_search',
   'create_agent',
-  'request_connection'
+  'request_connection',
+  'web.fetch',
+  'web.render',
+  'run_workers'
 ]
 
 export const WORKSPACE_GRANTS = [

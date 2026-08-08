@@ -300,6 +300,25 @@ const main = async (): Promise<void> => {
     /isn't in this build|is genuinely absent/.test(HOUSE_RULES)
   )
 
+  check(
+    'every agent can browse, fan out workers and build a teammate',
+    ['web.render', 'run_workers', 'create_agent', 'request_connection'].every((grant) =>
+      CORE_GRANTS.includes(grant)
+    )
+  )
+  check(
+    'house rules forbid asking permission to ask for a connection',
+    /Never ask permission to ask/.test(HOUSE_RULES)
+  )
+  check(
+    'house rules point at the browser for rendered pages',
+    HOUSE_RULES.includes('web.render') && /wrong tool, not that the site blocked you/.test(HOUSE_RULES)
+  )
+  check(
+    'house rules forbid describing a pipeline that never ran',
+    /writing fiction/.test(HOUSE_RULES)
+  )
+
   group('Flow graph')
 
   const flowNodes = [

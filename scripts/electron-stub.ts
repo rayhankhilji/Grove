@@ -22,3 +22,10 @@ export const shell = { openExternal: async (): Promise<void> => undefined }
 export const ipcMain = { handle: (): void => undefined }
 export const nativeTheme = { themeSource: 'dark' }
 export const BrowserWindow = { getAllWindows: (): unknown[] => [] }
+
+/** Headless browsing is a window feature; the checks never open one. */
+export const session = {
+  fromPartition: (): { clearStorageData: () => Promise<void> } => ({
+    clearStorageData: async (): Promise<void> => undefined
+  })
+}
