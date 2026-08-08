@@ -222,7 +222,11 @@ export const App = (): ReactNode => {
                   New
                 </button>
               </div>
-              <Chat conversation={active} key={active.id} />
+              <Chat
+                conversation={active}
+                key={active.id}
+                onGoConnections={() => setView('connections')}
+              />
             </>
           ) : (
             <div className="topbar">

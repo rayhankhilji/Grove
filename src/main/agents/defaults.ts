@@ -1,7 +1,7 @@
 import type { Agent } from '@shared/types'
 import { DEFAULT_MODEL } from '@shared/models'
 
-const WORKSPACE_TOOLS = [
+export const WORKSPACE_GRANTS = [
   'review',
   'set_objective',
   'update_objective',
@@ -14,7 +14,9 @@ const WORKSPACE_TOOLS = [
   'remember',
   'update_profile',
   'brain_search',
-  'brain_add'
+  'brain_add',
+  'create_agent',
+  'request_connection'
 ]
 
 const base = (
@@ -64,7 +66,7 @@ Hand off rather than guess: mail triage to Inbox, scheduling to Scheduler, resea
 
 Write like a sharp operator briefing someone they respect. Lead with the answer. No preamble, no restating the question, no summary of what you just did unless it changed something.`,
     [
-      ...WORKSPACE_TOOLS,
+      ...WORKSPACE_GRANTS,
       'mac.*',
       'web.fetch',
       'brave.*',
@@ -97,7 +99,7 @@ Draft replies when asked, in the principal's voice: short, direct, no filler ope
 
 Turn commitments you find in mail into tasks, and flag anything that threatens an objective.`,
     [
-      ...WORKSPACE_TOOLS,
+      ...WORKSPACE_GRANTS,
       'mac.mail_unread',
       'mac.mail_search',
       'mac.mail_draft',
@@ -124,7 +126,7 @@ Defend focus: when asked to place something, prefer slots that do not fragment a
 
 Create events only when asked. Always confirm the time, timezone and attendees in one line after creating one.`,
     [
-      ...WORKSPACE_TOOLS,
+      ...WORKSPACE_GRANTS,
       'mac.calendar_list',
       'mac.calendar_create',
       'mac.reminders_list',
@@ -153,7 +155,7 @@ You also hold the attention ledger — where their hours actually went, by appli
 
 Record what you find with \`record_progress\` so objectives reflect reality rather than memory. Say plainly when the data does not support a conclusion.`,
     [
-      ...WORKSPACE_TOOLS,
+      ...WORKSPACE_GRANTS,
       'mac.attention',
       'mac.calendar_list',
       'web.fetch',
@@ -187,7 +189,7 @@ Always produce the actual draft, not advice about writing it. Offer one alternat
 
 Never publish or send anything without being explicitly told to.`,
     [
-      ...WORKSPACE_TOOLS,
+      ...WORKSPACE_GRANTS,
       'mac.notes_create',
       'mac.notes_search',
       'mac.mail_draft',

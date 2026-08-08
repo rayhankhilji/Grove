@@ -8,7 +8,9 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CONNECTORS, connectorToolId, grantCovers, providerGrant } from '../src/shared/connectors'
-import { HOUSE_RULES, PERSONAS, personaFor } from '../src/shared/personas'
+import { PERSONAS, personaFor } from '../src/shared/personas'
+import { HOUSE_RULES as PERSONA_RULES } from '../src/shared/personas'
+import { HOUSE_RULES } from '../src/shared/agents'
 import { ALL_MODELS, PROVIDERS, SUBSCRIBABLE, providerOfModel } from '../src/shared/providers'
 import { BENCHES, MEETING_KINDS } from '../src/main/boardroom'
 import { MODELS } from '../src/shared/models'
@@ -240,6 +242,36 @@ const main = async (): Promise<void> => {
 
   /* ── Providers ────────────────────────────────────────────────────── */
 
+  group('Agent behaviour')
+
+  // The house rules are the fix for an agent that cowered when challenged and
+  // narrated its tool use instead of using it. Checking they still say so keeps
+  // a future edit from quietly deleting the reason.
+  check('house rules make the workspace ground truth', HOUSE_RULES.includes('ground truth'))
+  check('house rules forbid retracting under pressure', /cower/i.test(HOUSE_RULES))
+  check('house rules ban narrating tool use', HOUSE_RULES.includes('Let me check'))
+  check('house rules point at request_connection', HOUSE_RULES.includes('request_connection'))
+  check('house rules point at create_agent', HOUSE_RULES.includes('create_agent'))
+
+  const built = await runTool('create_agent', {
+    name: 'Fundraising',
+    role: 'Runs the raise',
+    instructions: 'You run the raise.',
+    tool_ids: 'google.*, not_a_real_tool, brave.brave_search'
+  })
+  check('an agent can build another agent', store.get().agents.some((a) => a.name === 'Fundraising'))
+  const madeAgent = store.get().agents.find((a) => a.name === 'Fundraising')!
+  check('a granted wildcard survives', madeAgent.toolIds.includes('google.*'))
+  check('an invented tool id is dropped, not saved', !madeAgent.toolIds.includes('not_a_real_tool'))
+  check('the dropped grant is reported back', built.result.includes('not_a_real_tool'))
+  check('a new agent always gets the workspace tools', madeAgent.toolIds.includes('review'))
+  check('a new agent starts supervised', madeAgent.autonomy === 'supervised')
+
+  const ask = await runTool('request_connection', { provider: 'microsoft', reason: 'to send mail' })
+  check('asking for an app emits the card marker', ask.result.startsWith('CONNECT_REQUEST:microsoft'))
+  const bogus = await runTool('request_connection', { provider: 'nope', reason: 'x' })
+  check('asking for an app Grove has no connector for says so', bogus.result.includes('no connector'))
+
   group('Flow graph')
 
   const flowNodes = [
@@ -427,14 +459,14 @@ const main = async (): Promise<void> => {
       .join(', ')
   )
   check(
-    'house rules ban the slop phrases',
+    'persona rules ban the slop phrases',
     ['Great question', 'It depends', 'unpack that'].every((phrase) =>
-      HOUSE_RULES.includes(phrase)
+      PERSONA_RULES.includes(phrase)
     )
   )
   check(
-    'house rules carry the not-the-real-person constraint',
-    HOUSE_RULES.includes('interpretation, not the person')
+    'persona rules carry the not-the-real-person constraint',
+    PERSONA_RULES.includes('interpretation, not the person')
   )
   check(
     'every suggested bench references real personas',

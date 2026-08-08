@@ -1,5 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { Agent, AppState, Run, RunStep, ToolCall } from '@shared/types'
+import { HOUSE_RULES } from '@shared/agents'
 import { snapshot, definitionsFor, runToolByWireName, toolsForAgent, type ToolDef } from '../tools'
 import { describeLlmError, runTurn } from '../llm'
 import { context as brainContext } from '../brain'
@@ -57,15 +58,20 @@ Today is ${date}.
 
 ${agent.instructions}
 
-## Operating rules
+---
 
-Use your tools rather than describing what could be done. Never claim you have done something a tool did not actually confirm.
+${HOUSE_RULES}
 
-When a task belongs to a teammate, hand it off instead of guessing — you get their finished work back and can build on it.
+## Also
 
-Be concrete. Cite the real numbers, names and dates you retrieved. If a tool failed or returned nothing, say so plainly rather than inventing a plausible answer.
+Never claim you have done something a tool did not actually confirm. When a task
+belongs to a teammate, hand it off — you get their finished work back and can
+build on it. If a tool failed or returned nothing, say so plainly rather than
+inventing a plausible answer.
 
-## Current state
+## The principal's own data
+
+Everything below was entered by the principal. It is fact. Use it directly.
 
 ${snapshot(state)}${
     brainContext(agent.role) ? `\n\n## What you already know about this company\n\n${brainContext(agent.role)}` : ''

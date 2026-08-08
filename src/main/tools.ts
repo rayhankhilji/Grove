@@ -1,4 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk'
+import { WORKSPACE_GRANTS } from './agents/defaults'
 import type {
   Agent,
   AppState,
@@ -419,6 +420,105 @@ const workspaceTools: ToolDef[] = [
         })
       })
       return `Remembered: ${input.text}`
+    }
+  },
+  {
+    id: 'create_agent',
+    label: 'Build a new agent',
+    write: true,
+    description:
+      'Create a new agent and add it to the team. Use this when the principal asks for one, or when the work clearly needs a specialist that does not exist yet. The agent appears in Agents immediately and can be launched. Give it only the tools it needs.',
+    schema: object(
+      {
+        name: str('Short, specific name. "Fundraising" beats "Assistant".'),
+        role: str('One line: what this agent is for.'),
+        instructions: str(
+          'The full system prompt: how it thinks, what it prioritises, what it never does. Write it the way you would brief a new hire — several paragraphs, specific.'
+        ),
+        tool_ids: str(
+          'Comma-separated tool ids it may call. Use a provider wildcard like "google.*" to grant a whole app. Workspace tools are always included.'
+        ),
+        glyph: enumOf(
+          ['today', 'chat', 'mail', 'calendar', 'objectives', 'doc', 'bolt', 'memory', 'search', 'agents'],
+          'Icon key.'
+        ),
+        autonomy: enumOf(
+          ['supervised', 'autonomous'],
+          'supervised asks before anything leaves this Mac. Default to supervised.'
+        )
+      },
+      ['name', 'role', 'instructions']
+    ),
+    run: (input) => {
+      const requested = String(input.tool_ids ?? '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+
+      // Anything that does not resolve is dropped rather than saved: a grant
+      // that matches nothing would leave the agent quietly toolless.
+      const valid = requested.filter((grant) =>
+        grant.includes('*')
+          ? ALL_TOOLS.some((tool) => grantCovers(grant, tool.id))
+          : byId.has(grant)
+      )
+      const rejected = requested.filter((grant) => !valid.includes(grant))
+
+      const agent: Agent = {
+        id: `agent-${id().slice(0, 8)}`,
+        name: String(input.name),
+        role: String(input.role),
+        glyph: String(input.glyph ?? 'agents'),
+        tint: '#2563eb',
+        model: store.get().settings.model,
+        effort: store.get().settings.effort,
+        instructions: String(input.instructions),
+        toolIds: [...new Set([...WORKSPACE_GRANTS, ...valid])],
+        handoffIds: ['chief'],
+        autonomy: input.autonomy === 'autonomous' ? 'autonomous' : 'supervised',
+        builtIn: false,
+        createdAt: now(),
+        updatedAt: now()
+      }
+
+      store.update((s) => {
+        s.agents.push(agent)
+      })
+
+      return [
+        `Created "${agent.name}" — it is live in Agents now and can be launched.`,
+        `Tools: ${agent.toolIds.length} grants.`,
+        rejected.length ? `Ignored (no such tool): ${rejected.join(', ')}.` : ''
+      ]
+        .filter(Boolean)
+        .join(' ')
+    }
+  },
+  {
+    id: 'request_connection',
+    label: 'Ask to connect an app',
+    write: false,
+    description:
+      'Ask the principal to connect an app you need. This puts a one-click connect card in the conversation. Use it the moment a task needs an app that is not connected — never explain that you lack access and stop there, and never suggest a third-party product instead.',
+    schema: object(
+      {
+        provider: enumOf(
+          CONNECTORS.map((connector) => connector.id),
+          'Which app you need.'
+        ),
+        reason: str('One line: what you will do once it is connected.')
+      },
+      ['provider', 'reason']
+    ),
+    run: (input) => {
+      const connector = CONNECTORS.find((entry) => entry.id === input.provider)
+      if (!connector) return `Grove has no connector called "${String(input.provider)}".`
+      if (providerConnected(connector.id)) {
+        return `${connector.name} is already connected — its tools are available to you now.`
+      }
+      // The renderer keys the connect card off this marker, so the string is
+      // load-bearing. Changing it must change Chat.tsx too.
+      return `CONNECT_REQUEST:${connector.id}\n${connector.name} is not connected. A connect card is now showing in the conversation. ${String(input.reason)}`
     }
   },
   {

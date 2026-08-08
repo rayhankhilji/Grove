@@ -60,6 +60,48 @@ const describe = (call: ToolCall): string => {
   return action ? `${connector!.name} · ${action.label}` : call.name
 }
 
+
+/**
+ * A connect card.
+ *
+ * When an agent needs an app that is not connected it calls
+ * `request_connection`, and the tool result carries a marker. Rendering that as
+ * a one-click card is the difference between "I don't have access to Outlook"
+ * and actually getting Outlook connected.
+ */
+const ConnectCard = ({ providerId, onGo }: { providerId: string; onGo: () => void }): ReactNode => {
+  const connector = CONNECTORS.find((entry) => entry.id === providerId)
+  const { state } = useStore()
+  if (!connector) return null
+  const live = state.connections.some(
+    (entry) => entry.providerId === providerId && entry.status === 'connected'
+  )
+
+  return (
+    <div className="connect-card" data-live={live}>
+      <span className="logo">
+        <BrandMark id={connector.id} name={connector.name} size={24} />
+      </span>
+      <span className="grow">
+        <span className="connect-name">{connector.name}</span>
+        <span className="connect-sub">
+          {live ? 'Connected — ask again and it will use it.' : `${connector.actions.length} actions`}
+        </span>
+      </span>
+      {live ? (
+        <span className="pill on">
+          <Icon name="check" size={12} strokeWidth={2.4} />
+          Connected
+        </span>
+      ) : (
+        <button className="btn primary" onClick={onGo}>
+          Connect
+        </button>
+      )}
+    </div>
+  )
+}
+
 /** The activity trail — collapsed by default, the way research UIs show steps. */
 const Steps = ({ calls, live }: { calls: ToolCall[]; live: boolean }): ReactNode => {
   const [open, setOpen] = useState(false)
@@ -105,13 +147,20 @@ const AnswerHead = ({ agent, model }: { agent: Agent | undefined; model: string 
 const Answer = ({
   message,
   agent,
-  showThinking
+  showThinking,
+  onGoConnections
 }: {
   message: Message
   agent: Agent | undefined
   showThinking: boolean
+  onGoConnections: () => void
 }): ReactNode => {
   const [copied, setCopied] = useState(false)
+
+  // Every connection the agent asked for during this turn, in order.
+  const requests = message.toolCalls
+    .filter((call) => call.result.startsWith('CONNECT_REQUEST:'))
+    .map((call) => call.result.slice('CONNECT_REQUEST:'.length).split('\n')[0]!)
 
   const copy = async (): Promise<void> => {
     await navigator.clipboard.writeText(message.text)
@@ -127,6 +176,9 @@ const Answer = ({
         <div className="thinking-box">{message.thinking}</div>
       ) : null}
       <Prose markdown={message.text} />
+      {requests.map((providerId) => (
+        <ConnectCard key={providerId} providerId={providerId} onGo={onGoConnections} />
+      ))}
       <div className="answer-actions">
         <button className="icon-btn" onClick={() => void copy()} aria-label="Copy answer">
           <Icon name={copied ? 'check' : 'copy'} size={15} />
@@ -136,7 +188,13 @@ const Answer = ({
   )
 }
 
-export const Chat = ({ conversation }: { conversation: Conversation }): ReactNode => {
+export const Chat = ({
+  conversation,
+  onGoConnections
+}: {
+  conversation: Conversation
+  onGoConnections: () => void
+}): ReactNode => {
   const { state, apply } = useStore()
   const [draft, setDraft] = useState('')
   const [streaming, setStreaming] = useState(false)
@@ -279,6 +337,7 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
                 message={message}
                 agent={state.agents.find((entry) => entry.id === message.agentId) ?? agent}
                 showThinking={state.settings.showThinking}
+                onGoConnections={onGoConnections}
               />
             )
           )}
@@ -293,8 +352,15 @@ export const Chat = ({ conversation }: { conversation: Conversation }): ReactNod
               {text ? (
                 <Prose markdown={text} />
               ) : (
-                <div className="prose">
-                  <span className="caret" />
+                <div className="row">
+                  <span className="thinking-dots">
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span className="thinking-label">
+                    {calls.length > 0 ? describe(calls[calls.length - 1]!) : 'Thinking'}
+                  </span>
                 </div>
               )}
             </div>

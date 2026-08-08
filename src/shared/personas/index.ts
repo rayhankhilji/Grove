@@ -4,7 +4,6 @@ import jobs from './jobs.md?raw'
 import altman from './altman.md?raw'
 import naval from './naval.md?raw'
 import karpathy from './karpathy.md?raw'
-import munger from './munger.md?raw'
 import collison from './collison.md?raw'
 import bezos from './bezos.md?raw'
 
@@ -68,7 +67,6 @@ export const PERSONAS: Persona[] = [
   altman,
   naval,
   karpathy,
-  munger,
   collison,
   bezos
 ].map(parse)

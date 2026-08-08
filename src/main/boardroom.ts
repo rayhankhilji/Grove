@@ -343,13 +343,13 @@ export const BENCHES: { id: string; label: string; kind: MeetingKind; personaIds
     id: 'full',
     label: 'The whole room',
     kind: 'board',
-    personaIds: ['graham', 'jobs', 'altman', 'naval', 'karpathy', 'munger', 'collison', 'bezos']
+    personaIds: ['graham', 'jobs', 'altman', 'naval', 'karpathy', 'collison', 'bezos']
   },
   {
     id: 'early',
     label: 'Early stage reality check',
     kind: 'strategy',
-    personaIds: ['graham', 'naval', 'munger', 'collison']
+    personaIds: ['graham', 'naval', 'collison', 'bezos']
   },
   {
     id: 'product',
@@ -361,19 +361,19 @@ export const BENCHES: { id: string; label: string; kind: MeetingKind; personaIds
     id: 'raise',
     label: 'Raising a round',
     kind: 'pitch',
-    personaIds: ['altman', 'munger', 'graham', 'bezos']
+    personaIds: ['altman', 'graham', 'bezos', 'collison']
   },
   {
     id: 'technical',
     label: 'Technical due diligence',
     kind: 'critique',
-    personaIds: ['karpathy', 'collison', 'munger']
+    personaIds: ['karpathy', 'collison', 'jobs']
   },
   {
     id: 'bet',
     label: 'Should we bet the company',
     kind: 'strategy',
-    personaIds: ['altman', 'bezos', 'munger', 'naval']
+    personaIds: ['altman', 'bezos', 'naval', 'graham']
   }
 ]
 

@@ -3239,11 +3239,13 @@ select.inline {
   z-index: 44;
 }
 
+/* Fixed, not absolute: the rail clips its own overflow, which cut the panel
+   in half. Anchored to the viewport it escapes cleanly. */
 .notices {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 320px;
+  position: fixed;
+  top: 74px;
+  left: 14px;
+  width: 330px;
   z-index: 45;
   border: 1px solid var(--line-2);
   border-radius: var(--r-lg);
@@ -4112,4 +4114,109 @@ select.inline {
 textarea.mono {
   font-family: var(--mono);
   font-size: 12px;
+}
+
+/* ── Connect card ───────────────────────────────────────────────────────────
+   An agent that needs an app it does not have asks for it, and the ask lands
+   in the conversation as something you can act on. This is the difference
+   between "I don't have Outlook access" and having Outlook.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.connect-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--brand-line);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--bg), var(--brand-soft));
+  box-shadow: var(--raise);
+}
+
+.connect-card[data-live='true'] {
+  border-color: var(--line-2);
+  background: var(--bg-2);
+}
+
+.connect-card .logo {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--fg);
+}
+
+.connect-card .grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.connect-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 560;
+}
+
+.connect-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+/* ── Thinking ───────────────────────────────────────────────────────────────
+   While a turn is in flight the reply area shows the agent's name and three
+   settling dots, so an empty gap never reads as a hang.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 0;
+}
+
+.thinking-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-4);
+  animation: settle 1.25s var(--ease) infinite;
+}
+
+.thinking-dots i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+.thinking-dots i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes settle {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    background: var(--fg-4);
+  }
+  30% {
+    transform: translateY(-4px);
+    background: var(--brand);
+  }
+}
+
+/* The word that says what it is doing right now, keyed off the live tool. */
+.thinking-label {
+  font-size: 12.5px;
+  color: var(--fg-3);
+  animation: breathe 2.2s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+  }
 }
